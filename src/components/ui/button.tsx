@@ -18,6 +18,9 @@ const buttonVariants = cva(
           "bg-secondary text-secondary-foreground hover:bg-secondary/80",
         ghost: "hover:bg-accent hover:text-accent-foreground",
         link: "text-primary underline-offset-4 hover:underline",
+        neon: "relative overflow-hidden bg-booyah-purple/80 text-white border border-booyah-neon-blue shadow-[0_0_5px_#1EAEDB] hover:shadow-[0_0_10px_#1EAEDB,0_0_20px_#1EAEDB] hover:scale-105 hover:bg-booyah-purple transition-all duration-300",
+        fire: "relative overflow-hidden bg-gradient-to-r from-orange-600 to-booyah-fire text-white border border-orange-500/50 hover:shadow-[0_0_10px_#ea384c] hover:scale-105 transition-all duration-300",
+        booyah: "bg-gradient-to-r from-booyah-purple to-booyah-neon-pink text-white shadow-md hover:shadow-booyah-neon-pink/40 hover:scale-105 transition-all duration-300",
       },
       size: {
         default: "h-10 px-4 py-2",

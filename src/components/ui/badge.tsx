@@ -15,6 +15,9 @@ const badgeVariants = cva(
         destructive:
           "border-transparent bg-destructive text-destructive-foreground hover:bg-destructive/80",
         outline: "text-foreground",
+        fire: "border-transparent bg-gradient-to-r from-orange-600 to-booyah-fire text-white hover:shadow-[0_0_5px_#ea384c]",
+        neon: "border border-booyah-neon-blue bg-black/50 text-booyah-neon-blue shadow-[0_0_5px_#1EAEDB] hover:shadow-[0_0_8px_#1EAEDB]",
+        booyah: "border-transparent bg-booyah-purple text-white animate-pulse-neon",
       },
     },
     defaultVariants: {

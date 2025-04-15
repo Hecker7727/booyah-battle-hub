@@ -1,0 +1,86 @@
+
+import { Link } from "react-router-dom";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { Menu, X, User, Search, Bell } from "lucide-react";
+import { useState } from "react";
+
+export function Navbar() {
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
+
+  const toggleMenu = () => setIsMenuOpen(!isMenuOpen);
+
+  return (
+    <header className="sticky top-0 z-50 w-full border-b border-border/40 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+      <div className="container flex h-16 items-center justify-between">
+        <div className="flex gap-6 items-center">
+          <Link to="/" className="flex items-center gap-2">
+            <span className="text-xl font-bold text-booyah-neon-blue animate-pulse-neon">
+              Booyah<span className="text-booyah-fire">Zone</span>
+            </span>
+          </Link>
+          
+          <nav className="hidden md:flex gap-6">
+            <Link to="/squad-finder" className="text-sm font-medium hover:text-booyah-neon-blue transition-colors">
+              Squad Finder
+            </Link>
+            <Link to="/clips" className="text-sm font-medium hover:text-booyah-neon-blue transition-colors">
+              Clips & Highlights
+            </Link>
+            <Link to="/tournaments" className="text-sm font-medium hover:text-booyah-neon-blue transition-colors">
+              Tournaments
+            </Link>
+            <Link to="/news" className="text-sm font-medium hover:text-booyah-neon-blue transition-colors">
+              News & Tips
+            </Link>
+            <Link to="/forums" className="text-sm font-medium hover:text-booyah-neon-blue transition-colors">
+              Forums
+            </Link>
+          </nav>
+        </div>
+
+        <div className="flex items-center gap-4">
+          <Button variant="ghost" size="icon" aria-label="Search">
+            <Search className="h-4 w-4" />
+          </Button>
+          <Button variant="ghost" size="icon" aria-label="Notifications">
+            <Bell className="h-4 w-4" />
+            <Badge variant="fire" className="absolute -top-1 -right-1 w-4 h-4 flex items-center justify-center p-0">3</Badge>
+          </Button>
+          <Button variant="neon" size="sm" className="hidden md:flex">
+            Join Community
+          </Button>
+          <Button variant="ghost" size="icon" className="md:hidden" onClick={toggleMenu} aria-label="Toggle Menu">
+            {isMenuOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
+          </Button>
+        </div>
+      </div>
+
+      {/* Mobile Navigation */}
+      {isMenuOpen && (
+        <div className="container md:hidden">
+          <nav className="flex flex-col space-y-4 pb-6">
+            <Link to="/squad-finder" className="text-sm font-medium hover:text-booyah-neon-blue transition-colors p-2">
+              Squad Finder
+            </Link>
+            <Link to="/clips" className="text-sm font-medium hover:text-booyah-neon-blue transition-colors p-2">
+              Clips & Highlights
+            </Link>
+            <Link to="/tournaments" className="text-sm font-medium hover:text-booyah-neon-blue transition-colors p-2">
+              Tournaments
+            </Link>
+            <Link to="/news" className="text-sm font-medium hover:text-booyah-neon-blue transition-colors p-2">
+              News & Tips
+            </Link>
+            <Link to="/forums" className="text-sm font-medium hover:text-booyah-neon-blue transition-colors p-2">
+              Forums
+            </Link>
+            <Button variant="neon" size="sm" className="w-full">
+              Join Community
+            </Button>
+          </nav>
+        </div>
+      )}
+    </header>
+  );
+}
