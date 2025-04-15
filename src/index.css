@@ -1,40 +1,30 @@
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
 @layer base {
   :root {
-    /* Gaming dark mode by default for BooyahZone - Free Fire theme */
     --background: 260 25% 11%;
     --foreground: 210 40% 98%;
-
     --card: 262 30% 14%;
     --card-foreground: 210 40% 98%;
-
     --popover: 262 30% 14%;
     --popover-foreground: 210 40% 98%;
-
-    --primary: 267 84% 75%; /* Purple for primary buttons */
+    --primary: 267 84% 75%;
     --primary-foreground: 0 0% 98%;
-
     --secondary: 262 83% 58%;
     --secondary-foreground: 0 0% 98%;
-
     --muted: 260 30% 20%;
     --muted-foreground: 240 5% 84%;
-
-    --accent: 12 90% 55%; /* Fire-inspired accent */
+    --accent: 12 90% 55%;
     --accent-foreground: 0 0% 98%;
-
     --destructive: 0 84% 60%;
     --destructive-foreground: 0 0% 98%;
-
     --border: 260 20% 25%;
     --input: 260 20% 25%;
     --ring: 267 84% 75%;
-
     --radius: 0.5rem;
-
     --sidebar-background: 262 35% 8%;
     --sidebar-foreground: 240 5% 90%;
     --sidebar-primary: 267 84% 75%;
@@ -45,36 +35,26 @@
     --sidebar-ring: 267 84% 75%;
   }
 
-  /* We're defaulting to dark mode, but still define light mode for completeness */
   .light {
     --background: 0 0% 98%;
     --foreground: 262 30% 14%;
-
     --card: 0 0% 100%;
     --card-foreground: 262 30% 14%;
-
     --popover: 0 0% 100%;
     --popover-foreground: 262 30% 14%;
-
     --primary: 267 84% 65%;
     --primary-foreground: 0 0% 98%;
-
     --secondary: 262 73% 38%;
     --secondary-foreground: 0 0% 98%;
-
     --muted: 260 10% 90%;
     --muted-foreground: 260 20% 40%;
-
     --accent: 12 90% 55%;
     --accent-foreground: 0 0% 98%;
-
     --destructive: 0 84.2% 60.2%;
     --destructive-foreground: 0 0% 98%;
-
     --border: 260 10% 80%;
     --input: 260 10% 80%;
     --ring: 267 84% 65%;
-
     --sidebar-background: 0 0% 98%;
     --sidebar-foreground: 262 30% 14%;
     --sidebar-primary: 267 84% 65%;
@@ -96,7 +76,6 @@
     background-image: radial-gradient(circle at center, rgba(155, 135, 245, 0.15) 0%, rgba(0, 0, 0, 0) 70%);
   }
 
-  /* Custom utility classes for BooyahZone */
   .neon-text {
     @apply animate-pulse-neon;
   }
