@@ -1,3 +1,4 @@
+
 import type { Config } from "tailwindcss";
 
 export default {
@@ -85,40 +86,13 @@ export default {
 			},
 			keyframes: {
 				'accordion-down': {
-					from: {
-						height: '0'
-					},
-					to: {
-						height: 'var(--radix-accordion-content-height)'
-					}
+					from: { height: '0' },
+					to: { height: 'var(--radix-accordion-content-height)' }
 				},
 				'accordion-up': {
-					from: {
-						height: 'var(--radix-accordion-content-height)'
-					},
-					to: {
-						height: '0'
-					}
-				}
-			},
-			animation: {
-				'accordion-down': 'accordion-down 0.2s ease-out',
-				'accordion-up': 'accordion-up 0.2s ease-out',
-                'pulse-neon': 'pulse-neon 2s infinite',
-                'float': 'float 6s ease-in-out infinite',
-                'flicker': 'flicker 1.5s infinite alternate',
-                'fire': 'fire 1.5s ease-in-out infinite alternate',
-                'smoke-drift': 'smoke-drift 8s ease-in-out infinite'
-			},
-            keyframes: {
-                'accordion-down': {
-                    from: { height: '0' },
-                    to: { height: 'var(--radix-accordion-content-height)' }
-                },
-                'accordion-up': {
-                    from: { height: 'var(--radix-accordion-content-height)' },
-                    to: { height: '0' }
-                },
+					from: { height: 'var(--radix-accordion-content-height)' },
+					to: { height: '0' }
+				},
                 'pulse-neon': {
                     '0%, 100%': { 
                         textShadow: '0 0 5px #1EAEDB, 0 0 20px #1EAEDB' 
@@ -146,6 +120,16 @@ export default {
                     '50%': { transform: 'translateX(10px) translateY(-15px)', opacity: '0.5' },
                     '100%': { transform: 'translateX(0) translateY(0)', opacity: '0.8' }
                 }
+			},
+			animation: {
+				'accordion-down': 'accordion-down 0.2s ease-out',
+				'accordion-up': 'accordion-up 0.2s ease-out',
+                'pulse-neon': 'pulse-neon 2s infinite',
+                'float': 'float 6s ease-in-out infinite',
+                'flicker': 'flicker 1.5s infinite alternate',
+                'fire': 'fire 1.5s ease-in-out infinite alternate',
+                'smoke-drift': 'smoke-drift 8s ease-in-out infinite'
+			}
 		}
 	},
 	plugins: [require("tailwindcss-animate")],
