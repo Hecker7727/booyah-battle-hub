@@ -11,6 +11,7 @@ import Clips from "./pages/Clips";
 import Tournaments from "./pages/Tournaments";
 import News from "./pages/News";
 import Forums from "./pages/Forums";
+import Login from "./pages/Login";
 
 const queryClient = new QueryClient();
 
@@ -27,6 +28,7 @@ const App = () => (
           <Route path="/tournaments" element={<Tournaments />} />
           <Route path="/news" element={<News />} />
           <Route path="/forums" element={<Forums />} />
+          <Route path="/login" element={<Login />} />
           <Route path="*" element={<NotFound />} />
         </Routes>
       </BrowserRouter>

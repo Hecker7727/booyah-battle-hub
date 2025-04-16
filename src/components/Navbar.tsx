@@ -1,14 +1,30 @@
 
-import { Link } from "react-router-dom";
+import { useState } from "react";
+import { Link, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Menu, X, User, Search, Bell } from "lucide-react";
-import { useState } from "react";
+import { useToast } from "@/hooks/use-toast";
 
 export function Navbar() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const { toast } = useToast();
+  const navigate = useNavigate();
 
   const toggleMenu = () => setIsMenuOpen(!isMenuOpen);
+
+  const handleLogin = () => {
+    navigate("/login");
+  };
+
+  const handleLogout = () => {
+    setIsLoggedIn(false);
+    toast({
+      title: "Logged out",
+      description: "You have been successfully logged out.",
+    });
+  };
 
   return (
     <header className="sticky top-0 z-50 w-full border-b border-border/40 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
@@ -47,9 +63,21 @@ export function Navbar() {
             <Bell className="h-4 w-4" />
             <Badge variant="fire" className="absolute -top-1 -right-1 w-4 h-4 flex items-center justify-center p-0">3</Badge>
           </Button>
-          <Button variant="neon" size="sm" className="hidden md:flex">
-            Join Community
-          </Button>
+          {isLoggedIn ? (
+            <div className="hidden md:flex items-center gap-4">
+              <Button variant="ghost" size="icon" className="relative" aria-label="User Profile">
+                <User className="h-4 w-4" />
+                <Badge variant="neon" className="absolute -top-1 -right-1 w-2 h-2 p-0"></Badge>
+              </Button>
+              <Button variant="outline" size="sm" onClick={handleLogout}>
+                Logout
+              </Button>
+            </div>
+          ) : (
+            <Button variant="neon" size="sm" className="hidden md:flex" onClick={handleLogin}>
+              Join Community
+            </Button>
+          )}
           <Button variant="ghost" size="icon" className="md:hidden" onClick={toggleMenu} aria-label="Toggle Menu">
             {isMenuOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
           </Button>
@@ -75,9 +103,21 @@ export function Navbar() {
             <Link to="/forums" className="text-sm font-medium hover:text-booyah-neon-blue transition-colors p-2">
               Forums
             </Link>
-            <Button variant="neon" size="sm" className="w-full">
-              Join Community
-            </Button>
+            {isLoggedIn ? (
+              <div className="flex gap-4">
+                <Button variant="ghost" size="sm" className="flex items-center gap-2">
+                  <User className="h-4 w-4" />
+                  Profile
+                </Button>
+                <Button variant="outline" size="sm" onClick={handleLogout}>
+                  Logout
+                </Button>
+              </div>
+            ) : (
+              <Button variant="neon" size="sm" className="w-full" onClick={handleLogin}>
+                Join Community
+              </Button>
+            )}
           </nav>
         </div>
       )}
