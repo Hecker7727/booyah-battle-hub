@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -11,9 +10,24 @@ import {
   CheckCircle,
   Filter,
   ChevronDown,
-  ChevronUp
+  ChevronUp,
+  Gamepad,
+  Shield
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { useNavigate } from "react-router-dom";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+  DialogClose,
+} from "@/components/ui/dialog";
+
+type TournamentType = "Solo" | "Duo" | "Squad";
 
 type Tournament = {
   id: string;
@@ -26,6 +40,7 @@ type Tournament = {
   maxTeams: number;
   registeredTeams: number;
   game: string;
+  type: TournamentType;
   status: "upcoming" | "live" | "completed";
   image?: string;
 };
@@ -42,6 +57,7 @@ const SAMPLE_TOURNAMENTS: Tournament[] = [
     maxTeams: 25,
     registeredTeams: 18,
     game: "Battle Royale",
+    type: "Squad",
     status: "upcoming",
     image: "https://images.unsplash.com/photo-1542751371-adc38448a05e?ixlib=rb-1.2.1&auto=format&fit=crop&w=2850&q=80"
   },
@@ -56,6 +72,7 @@ const SAMPLE_TOURNAMENTS: Tournament[] = [
     maxTeams: 32,
     registeredTeams: 24,
     game: "Clash Squad",
+    type: "Duo",
     status: "upcoming"
   },
   {
@@ -69,6 +86,7 @@ const SAMPLE_TOURNAMENTS: Tournament[] = [
     maxTeams: 50,
     registeredTeams: 42,
     game: "Battle Royale",
+    type: "Squad",
     status: "upcoming"
   },
   {
@@ -82,6 +100,7 @@ const SAMPLE_TOURNAMENTS: Tournament[] = [
     maxTeams: 20,
     registeredTeams: 20,
     game: "Battle Royale",
+    type: "Solo",
     status: "live"
   },
 ];
@@ -92,28 +111,12 @@ export function TournamentsSection() {
   const [filters, setFilters] = useState({
     game: "all",
     status: "all",
-    region: "all"
+    region: "all",
+    type: "all"
   });
   
   const { toast } = useToast();
-
-  const handleRegister = (tournamentId: string) => {
-    setTournaments(prevTournaments => 
-      prevTournaments.map(tournament => 
-        tournament.id === tournamentId 
-          ? { 
-              ...tournament, 
-              registeredTeams: tournament.registeredTeams + 1 
-            } 
-          : tournament
-      )
-    );
-    
-    toast({
-      title: "Successfully registered!",
-      description: "Check your notifications for tournament details.",
-    });
-  };
+  const navigate = useNavigate();
 
   const toggleFilter = () => {
     setFilterOpen(!filterOpen);
@@ -126,15 +129,24 @@ export function TournamentsSection() {
     }));
   };
 
+  const handleRegister = (tournamentId: string) => {
+    navigate("/login");
+    
+    toast({
+      title: "Login required",
+      description: "Please login to register for tournaments.",
+    });
+  };
+
   const filteredTournaments = tournaments.filter(tournament => {
     return (filters.game === "all" || tournament.game === filters.game) &&
            (filters.status === "all" || tournament.status === filters.status) &&
-           (filters.region === "all" || tournament.location.includes(filters.region));
+           (filters.region === "all" || tournament.location.includes(filters.region)) &&
+           (filters.type === "all" || tournament.type === filters.type);
   });
 
   return (
     <section className="py-16 relative">
-      {/* Background effect */}
       <div className="absolute inset-0 z-0" style={{
         backgroundImage: `
           radial-gradient(circle at 30% 20%, rgba(155, 135, 245, 0.15) 0%, rgba(0, 0, 0, 0) 50%),
@@ -154,7 +166,6 @@ export function TournamentsSection() {
           </p>
         </div>
 
-        {/* Filters */}
         <div className="mb-8">
           <Button 
             variant="outline" 
@@ -167,7 +178,7 @@ export function TournamentsSection() {
           </Button>
           
           {filterOpen && (
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 p-4 bg-card/80 rounded-lg border border-border mb-6">
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-4 p-4 bg-card/80 rounded-lg border border-border mb-6">
               <div>
                 <h4 className="text-sm font-medium mb-2">Game Mode</h4>
                 <div className="flex gap-2 flex-wrap">
@@ -269,11 +280,44 @@ export function TournamentsSection() {
                   </Badge>
                 </div>
               </div>
+              
+              <div>
+                <h4 className="text-sm font-medium mb-2">Tournament Type</h4>
+                <div className="flex gap-2 flex-wrap">
+                  <Badge 
+                    variant={filters.type === "all" ? "neon" : "outline"}
+                    className="cursor-pointer"
+                    onClick={() => setFilter("type", "all")}
+                  >
+                    All
+                  </Badge>
+                  <Badge 
+                    variant={filters.type === "Solo" ? "neon" : "outline"}
+                    className="cursor-pointer"
+                    onClick={() => setFilter("type", "Solo")}
+                  >
+                    Solo
+                  </Badge>
+                  <Badge 
+                    variant={filters.type === "Duo" ? "neon" : "outline"}
+                    className="cursor-pointer"
+                    onClick={() => setFilter("type", "Duo")}
+                  >
+                    Duo
+                  </Badge>
+                  <Badge 
+                    variant={filters.type === "Squad" ? "neon" : "outline"}
+                    className="cursor-pointer"
+                    onClick={() => setFilter("type", "Squad")}
+                  >
+                    Squad
+                  </Badge>
+                </div>
+              </div>
             </div>
           )}
         </div>
 
-        {/* Featured tournament */}
         <div className="mb-12 neon-card overflow-hidden">
           <div className="grid md:grid-cols-2 gap-6">
             <div className="h-64 md:h-auto relative">
@@ -314,6 +358,14 @@ export function TournamentsSection() {
                     <MapPin className="h-4 w-4 text-booyah-neon-blue" />
                     <span className="text-sm">{SAMPLE_TOURNAMENTS[0].location}</span>
                   </div>
+                  <div className="flex items-center gap-2">
+                    <Gamepad className="h-4 w-4 text-booyah-neon-blue" />
+                    <span className="text-sm">{SAMPLE_TOURNAMENTS[0].game}</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <Shield className="h-4 w-4 text-booyah-neon-blue" />
+                    <span className="text-sm">{SAMPLE_TOURNAMENTS[0].type}</span>
+                  </div>
                 </div>
                 
                 <div className="flex items-center gap-2 mb-4">
@@ -328,30 +380,54 @@ export function TournamentsSection() {
                 </div>
               </div>
               
-              <Button 
-                variant="fire"
-                className="w-full"
-                onClick={() => handleRegister(SAMPLE_TOURNAMENTS[0].id)}
-                disabled={SAMPLE_TOURNAMENTS[0].registeredTeams >= SAMPLE_TOURNAMENTS[0].maxTeams}
-              >
-                {SAMPLE_TOURNAMENTS[0].registeredTeams >= SAMPLE_TOURNAMENTS[0].maxTeams 
-                  ? "Full" : "Register for Tournament"}
-              </Button>
+              <Dialog>
+                <DialogTrigger asChild>
+                  <Button 
+                    variant="fire"
+                    className="w-full"
+                    disabled={SAMPLE_TOURNAMENTS[0].registeredTeams >= SAMPLE_TOURNAMENTS[0].maxTeams}
+                  >
+                    {SAMPLE_TOURNAMENTS[0].registeredTeams >= SAMPLE_TOURNAMENTS[0].maxTeams 
+                      ? "Full" : "Register for Tournament"}
+                  </Button>
+                </DialogTrigger>
+                <DialogContent>
+                  <DialogHeader>
+                    <DialogTitle>Register for {SAMPLE_TOURNAMENTS[0].title}</DialogTitle>
+                    <DialogDescription>
+                      Login required to register for tournaments.
+                    </DialogDescription>
+                  </DialogHeader>
+                  <div className="py-4">
+                    <p className="mb-4">You need to be logged in to register for tournaments. Would you like to continue to the login page?</p>
+                  </div>
+                  <DialogFooter>
+                    <DialogClose asChild>
+                      <Button variant="outline">Cancel</Button>
+                    </DialogClose>
+                    <Button variant="fire" onClick={() => handleRegister(SAMPLE_TOURNAMENTS[0].id)}>
+                      Login
+                    </Button>
+                  </DialogFooter>
+                </DialogContent>
+              </Dialog>
             </div>
           </div>
         </div>
 
-        {/* Tournaments list */}
         <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6 mb-12">
           {filteredTournaments.slice(1).map((tournament) => (
             <div key={tournament.id} className="neon-card p-6 flex flex-col">
               <div className="mb-4">
-                <Badge 
-                  variant={tournament.status === "live" ? "fire" : tournament.status === "completed" ? "secondary" : "neon"}
-                  className="mb-2"
-                >
-                  {tournament.status === "live" ? "Live Now" : tournament.status === "completed" ? "Completed" : "Upcoming"}
-                </Badge>
+                <div className="flex justify-between items-start mb-2">
+                  <Badge 
+                    variant={tournament.status === "live" ? "fire" : tournament.status === "completed" ? "secondary" : "neon"}
+                    className="mb-2"
+                  >
+                    {tournament.status === "live" ? "Live Now" : tournament.status === "completed" ? "Completed" : "Upcoming"}
+                  </Badge>
+                  <Badge variant="outline">{tournament.type}</Badge>
+                </div>
                 <h3 className="text-xl font-bold mb-2">{tournament.title}</h3>
                 <p className="text-sm text-muted-foreground line-clamp-2 mb-4">{tournament.description}</p>
                 
@@ -372,6 +448,10 @@ export function TournamentsSection() {
                     <MapPin className="h-4 w-4 text-booyah-neon-blue" />
                     <span>{tournament.location}</span>
                   </div>
+                  <div className="flex items-center gap-2">
+                    <Gamepad className="h-4 w-4 text-booyah-neon-blue" />
+                    <span>{tournament.game}</span>
+                  </div>
                 </div>
                 
                 <div className="flex items-center gap-2 mb-4">
@@ -387,24 +467,45 @@ export function TournamentsSection() {
               </div>
               
               <div className="mt-auto">
-                <Button 
-                  variant={tournament.status === "completed" ? "outline" : "neon"}
-                  className="w-full"
-                  onClick={() => handleRegister(tournament.id)}
-                  disabled={tournament.registeredTeams >= tournament.maxTeams || tournament.status === "completed"}
-                >
-                  {tournament.status === "completed" 
-                    ? "View Results" 
-                    : tournament.registeredTeams >= tournament.maxTeams 
-                      ? "Full" 
-                      : "Register"}
-                </Button>
+                <Dialog>
+                  <DialogTrigger asChild>
+                    <Button 
+                      variant={tournament.status === "completed" ? "outline" : "neon"}
+                      className="w-full"
+                      disabled={tournament.registeredTeams >= tournament.maxTeams || tournament.status === "completed"}
+                    >
+                      {tournament.status === "completed" 
+                        ? "View Results" 
+                        : tournament.registeredTeams >= tournament.maxTeams 
+                          ? "Full" 
+                          : "Register"}
+                    </Button>
+                  </DialogTrigger>
+                  <DialogContent>
+                    <DialogHeader>
+                      <DialogTitle>Register for {tournament.title}</DialogTitle>
+                      <DialogDescription>
+                        Login required to register for tournaments.
+                      </DialogDescription>
+                    </DialogHeader>
+                    <div className="py-4">
+                      <p className="mb-4">You need to be logged in to register for tournaments. Would you like to continue to the login page?</p>
+                    </div>
+                    <DialogFooter>
+                      <DialogClose asChild>
+                        <Button variant="outline">Cancel</Button>
+                      </DialogClose>
+                      <Button variant="fire" onClick={() => handleRegister(tournament.id)}>
+                        Login
+                      </Button>
+                    </DialogFooter>
+                  </DialogContent>
+                </Dialog>
               </div>
             </div>
           ))}
         </div>
 
-        {/* Create your own tournament section */}
         <div className="neon-card p-8 mb-6">
           <div className="flex flex-col md:flex-row items-center gap-6">
             <div className="h-24 w-24 rounded-full bg-booyah-purple/30 flex items-center justify-center">
@@ -418,13 +519,33 @@ export function TournamentsSection() {
               </p>
             </div>
             
-            <Button variant="fire" size="lg">
-              Create Tournament
-            </Button>
+            <Dialog>
+              <DialogTrigger asChild>
+                <Button variant="fire" size="lg">Create Tournament</Button>
+              </DialogTrigger>
+              <DialogContent>
+                <DialogHeader>
+                  <DialogTitle>Create a Tournament</DialogTitle>
+                  <DialogDescription>
+                    Login required to create tournaments.
+                  </DialogDescription>
+                </DialogHeader>
+                <div className="py-4">
+                  <p className="mb-4">You need to be logged in to create tournaments. Would you like to continue to the login page?</p>
+                </div>
+                <DialogFooter>
+                  <DialogClose asChild>
+                    <Button variant="outline">Cancel</Button>
+                  </DialogClose>
+                  <Button variant="fire" onClick={() => navigate("/login")}>
+                    Login
+                  </Button>
+                </DialogFooter>
+              </DialogContent>
+            </Dialog>
           </div>
         </div>
 
-        {/* Tournament rules and info */}
         <div className="glass-effect p-6 rounded-lg">
           <h3 className="text-xl font-bold mb-4">Tournament Information</h3>
           <div className="grid md:grid-cols-2 gap-6">
@@ -448,6 +569,7 @@ export function TournamentsSection() {
                 How to Join
               </h4>
               <ol className="list-decimal list-inside space-y-1 text-sm text-muted-foreground pl-5">
+                <li>Create an account and login</li>
                 <li>Register for the tournament</li>
                 <li>Form your team or join solo (depending on tournament type)</li>
                 <li>Check your email/notifications for confirmation</li>

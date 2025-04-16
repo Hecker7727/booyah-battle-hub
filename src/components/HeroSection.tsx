@@ -2,8 +2,19 @@
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { ArrowRight, Users, Trophy, Flame } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 
 export function HeroSection() {
+  const navigate = useNavigate();
+
+  const handleFindSquad = () => {
+    navigate("/squad-finder");
+  };
+
+  const handleJoinCommunity = () => {
+    navigate("/login");
+  };
+
   return (
     <section className="relative overflow-hidden py-16 md:py-24">
       {/* Background effects */}
@@ -32,11 +43,11 @@ export function HeroSection() {
               </p>
             </div>
             <div className="flex flex-col sm:flex-row gap-4">
-              <Button variant="fire" size="lg" className="group">
+              <Button variant="fire" size="lg" className="group" onClick={handleFindSquad}>
                 Find Your Squad
                 <ArrowRight className="ml-1 transition-transform group-hover:translate-x-1" />
               </Button>
-              <Button variant="neon" size="lg">
+              <Button variant="neon" size="lg" onClick={handleJoinCommunity}>
                 Join Community
               </Button>
             </div>
