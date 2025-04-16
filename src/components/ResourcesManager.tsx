@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -41,7 +40,7 @@ import { useForm } from "react-hook-form";
 import { 
   BookOpen, 
   Users, 
-  Gun, 
+  Crosshair, 
   Map, 
   Trophy, 
   FileText, 
@@ -140,7 +139,10 @@ export function ResourcesManager() {
       // Add new resource
       const newResource: Resource = {
         id: Date.now().toString(),
-        ...values,
+        type: values.type,
+        title: values.title,
+        content: values.content,
+        imageUrl: values.imageUrl || undefined,
         createdAt: new Date().toISOString(),
         updatedAt: new Date().toISOString(),
       };
@@ -195,7 +197,7 @@ export function ResourcesManager() {
     switch (type) {
       case "beginner-guide": return <BookOpen className="h-5 w-5" />;
       case "character-guide": return <Users className="h-5 w-5" />;
-      case "weapon-tier": return <Gun className="h-5 w-5" />;
+      case "weapon-tier": return <Crosshair className="h-5 w-5" />;
       case "map-strategy": return <Map className="h-5 w-5" />;
       case "rank-tip": return <Trophy className="h-5 w-5" />;
       case "patch-note": return <FileText className="h-5 w-5" />;
@@ -234,7 +236,7 @@ export function ResourcesManager() {
             <span className="hidden md:inline">Character Guides</span>
           </TabsTrigger>
           <TabsTrigger value="weapon-tier" className="flex items-center gap-2">
-            <Gun className="h-4 w-4" />
+            <Crosshair className="h-4 w-4" />
             <span className="hidden md:inline">Weapon Tier List</span>
           </TabsTrigger>
           <TabsTrigger value="map-strategy" className="flex items-center gap-2">
@@ -242,11 +244,11 @@ export function ResourcesManager() {
             <span className="hidden md:inline">Map Strategies</span>
           </TabsTrigger>
           <TabsTrigger value="rank-tip" className="flex items-center gap-2">
-            <Trophy className="h-4 w-4" />
+            <Trophy className="h-5 w-5" />
             <span className="hidden md:inline">Rank Tips</span>
           </TabsTrigger>
           <TabsTrigger value="patch-note" className="flex items-center gap-2">
-            <FileText className="h-4 w-4" />
+            <FileText className="h-5 w-5" />
             <span className="hidden md:inline">Patch Notes</span>
           </TabsTrigger>
         </TabsList>

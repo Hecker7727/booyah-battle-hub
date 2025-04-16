@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { Layout } from "@/components/Layout";
 import { Button } from "@/components/ui/button";
@@ -6,10 +5,9 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { AdminAuth } from "@/components/AdminAuth";
 import { ResourcesManager, Resource, ResourceType } from "@/components/ResourcesManager";
-import { BookOpen, Users, Gun, Map, Trophy, FileText, ChevronRight } from "lucide-react";
+import { BookOpen, Users, Crosshair, Map, Trophy, FileText, ChevronRight } from "lucide-react";
 import { useNavigate, useParams } from "react-router-dom";
 
-// Initial sample resources (in a real app, these would come from a database)
 const SAMPLE_RESOURCES: Resource[] = [
   {
     id: "1",
@@ -73,7 +71,6 @@ export default function Guides() {
   
   useEffect(() => {
     if (category) {
-      // Map URL parameter to resource type
       const categoryMap: Record<string, ResourceType> = {
         "characters": "character-guide",
         "weapons": "weapon-tier",
@@ -89,7 +86,6 @@ export default function Guides() {
       }
     }
     
-    // Check admin status
     setIsAdmin(sessionStorage.getItem("isAdmin") === "true");
   }, [category]);
 
@@ -97,7 +93,7 @@ export default function Guides() {
     switch (type) {
       case "beginner-guide": return <BookOpen className="h-5 w-5" />;
       case "character-guide": return <Users className="h-5 w-5" />;
-      case "weapon-tier": return <Gun className="h-5 w-5" />;
+      case "weapon-tier": return <Crosshair className="h-5 w-5" />;
       case "map-strategy": return <Map className="h-5 w-5" />;
       case "rank-tip": return <Trophy className="h-5 w-5" />;
       case "patch-note": return <FileText className="h-5 w-5" />;
@@ -155,7 +151,7 @@ export default function Guides() {
                 <span className="hidden md:inline">Character Guides</span>
               </TabsTrigger>
               <TabsTrigger value="weapon-tier" className="flex items-center gap-2">
-                <Gun className="h-4 w-4" />
+                <Crosshair className="h-4 w-4" />
                 <span className="hidden md:inline">Weapon Tier List</span>
               </TabsTrigger>
               <TabsTrigger value="map-strategy" className="flex items-center gap-2">
