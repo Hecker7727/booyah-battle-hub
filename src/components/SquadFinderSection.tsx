@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -19,6 +20,29 @@ import {
 import { Input } from "@/components/ui/input";
 import { useToast } from "@/hooks/use-toast";
 import { useNavigate } from "react-router-dom";
+import { 
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle 
+} from "@/components/ui/dialog";
+import { Textarea } from "@/components/ui/textarea";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import { Label } from "@/components/ui/label";
+import { 
+  Form, 
+  FormControl, 
+  FormDescription, 
+  FormField, 
+  FormItem, 
+  FormLabel, 
+  FormMessage 
+} from "@/components/ui/form";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { z } from "zod";
 
 type Squad = {
   id: string;
@@ -99,6 +123,35 @@ const SAMPLE_SQUADS: Squad[] = [
   },
 ];
 
+// Schema for creating a new squad request
+const createSquadSchema = z.object({
+  gameMode: z.enum(["Battle Royale", "Clash Squad"], {
+    required_error: "Please select a game mode",
+  }),
+  playStyle: z.enum(["Rusher", "Sniper", "Tactical", "Balanced"], {
+    required_error: "Please select a playstyle",
+  }),
+  region: z.enum(["Asia", "North America", "Europe", "Global"], {
+    required_error: "Please select a region",
+  }),
+  schedule: z.enum(["Morning", "Afternoon", "Evening", "Night", "Weekend", "Flexible"], {
+    required_error: "Please select a schedule",
+  }),
+  needed: z.string().transform(val => parseInt(val, 10)),
+  description: z.string().min(10, "Description must be at least 10 characters"),
+});
+
+// Schema for joining a squad
+const joinSquadSchema = z.object({
+  playstyle: z.enum(["Rusher", "Sniper", "Tactical", "Balanced"], {
+    required_error: "Please select your playstyle",
+  }),
+  message: z.string().min(5, "Message must be at least 5 characters"),
+});
+
+type CreateSquadFormValues = z.infer<typeof createSquadSchema>;
+type JoinSquadFormValues = z.infer<typeof joinSquadSchema>;
+
 export function SquadFinderSection() {
   const [squads, setSquads] = useState<Squad[]>(SAMPLE_SQUADS);
   const [searchQuery, setSearchQuery] = useState("");
@@ -109,6 +162,11 @@ export function SquadFinderSection() {
     playstyle: "all",
     rank: "all"
   });
+  const [createSquadOpen, setCreateSquadOpen] = useState(false);
+  const [joinSquadOpen, setJoinSquadOpen] = useState(false);
+  const [currentSquad, setCurrentSquad] = useState<Squad | null>(null);
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
+
   const { toast } = useToast();
   const navigate = useNavigate();
 
@@ -117,9 +175,31 @@ export function SquadFinderSection() {
   };
 
   const handleJoinSquad = (squadId: string) => {
+    const squad = squads.find(s => s.id === squadId);
+    
+    if (!isLoggedIn) {
+      toast({
+        title: "Login required",
+        description: "You need to login to join a squad",
+        variant: "destructive"
+      });
+      navigate("/login");
+      return;
+    }
+    
+    if (squad) {
+      setCurrentSquad(squad);
+      setJoinSquadOpen(true);
+    }
+  };
+
+  const submitJoinRequest = (values: JoinSquadFormValues) => {
+    if (!currentSquad) return;
+    
+    // Update the squad with the new user
     setSquads(prevSquads => 
       prevSquads.map(squad => 
-        squad.id === squadId 
+        squad.id === currentSquad.id 
           ? { 
               ...squad, 
               joined: [...squad.joined, "CurrentUser"],
@@ -130,8 +210,52 @@ export function SquadFinderSection() {
     
     toast({
       title: "Request sent!",
-      description: "The squad leader will review your request.",
+      description: `You've requested to join ${currentSquad.username}'s squad as a ${values.playstyle}`,
     });
+    
+    setJoinSquadOpen(false);
+  };
+
+  const handleCreateSquad = () => {
+    if (!isLoggedIn) {
+      toast({
+        title: "Login required",
+        description: "You need to login to create a squad request",
+        variant: "destructive"
+      });
+      navigate("/login");
+      return;
+    }
+    
+    setCreateSquadOpen(true);
+  };
+
+  const submitCreateSquad = (values: CreateSquadFormValues) => {
+    // Create a new squad
+    const newSquad: Squad = {
+      id: `${squads.length + 1}`,
+      username: "CurrentUser",
+      avatar: "https://randomuser.me/api/portraits/men/66.jpg",
+      rank: "Diamond", // In a real app, this would come from the user's profile
+      platform: "Mobile", // Same here
+      gameMode: values.gameMode,
+      playStyle: values.playStyle,
+      region: values.region,
+      schedule: values.schedule,
+      needed: values.needed,
+      joined: [],
+      description: values.description,
+      createdAt: new Date().toISOString().split('T')[0]
+    };
+    
+    setSquads(prev => [newSquad, ...prev]);
+    
+    toast({
+      title: "Squad request created!",
+      description: "Your squad request has been posted. Players can now join your squad.",
+    });
+    
+    setCreateSquadOpen(false);
   };
 
   const handleCreateProfile = () => {
@@ -159,6 +283,28 @@ export function SquadFinderSection() {
       [key]: value
     }));
   };
+
+  // Form for creating a squad
+  const createSquadForm = useForm<CreateSquadFormValues>({
+    resolver: zodResolver(createSquadSchema),
+    defaultValues: {
+      gameMode: "Battle Royale",
+      playStyle: "Balanced",
+      region: "Global",
+      schedule: "Flexible",
+      needed: "3",
+      description: "",
+    },
+  });
+
+  // Form for joining a squad
+  const joinSquadForm = useForm<JoinSquadFormValues>({
+    resolver: zodResolver(joinSquadSchema),
+    defaultValues: {
+      playstyle: "Balanced",
+      message: "",
+    },
+  });
 
   return (
     <section className="py-16 relative">
@@ -240,6 +386,7 @@ export function SquadFinderSection() {
             <Button 
               variant="fire" 
               className="md:w-auto w-full flex items-center gap-2"
+              onClick={handleCreateSquad}
             >
               <PlusCircle className="h-4 w-4" />
               Create Squad Request
@@ -499,6 +646,300 @@ export function SquadFinderSection() {
           </div>
         </div>
       </div>
+
+      {/* Create Squad Dialog */}
+      <Dialog open={createSquadOpen} onOpenChange={setCreateSquadOpen}>
+        <DialogContent className="sm:max-w-[500px]">
+          <DialogHeader>
+            <DialogTitle>Create Squad Request</DialogTitle>
+            <DialogDescription>
+              Fill out the details below to create a new squad request. Players who match your criteria will be able to request to join.
+            </DialogDescription>
+          </DialogHeader>
+
+          <Form {...createSquadForm}>
+            <form onSubmit={createSquadForm.handleSubmit(submitCreateSquad)} className="space-y-4">
+              <div className="grid grid-cols-2 gap-4">
+                <FormField
+                  control={createSquadForm.control}
+                  name="gameMode"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Game Mode</FormLabel>
+                      <FormControl>
+                        <RadioGroup 
+                          onValueChange={field.onChange} 
+                          defaultValue={field.value}
+                          className="flex flex-col space-y-1"
+                        >
+                          <div className="flex items-center space-x-2">
+                            <RadioGroupItem value="Battle Royale" id="br" />
+                            <Label htmlFor="br">Battle Royale</Label>
+                          </div>
+                          <div className="flex items-center space-x-2">
+                            <RadioGroupItem value="Clash Squad" id="cs" />
+                            <Label htmlFor="cs">Clash Squad</Label>
+                          </div>
+                        </RadioGroup>
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={createSquadForm.control}
+                  name="region"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Region</FormLabel>
+                      <FormControl>
+                        <RadioGroup 
+                          onValueChange={field.onChange} 
+                          defaultValue={field.value}
+                          className="flex flex-col space-y-1"
+                        >
+                          <div className="flex items-center space-x-2">
+                            <RadioGroupItem value="Asia" id="asia" />
+                            <Label htmlFor="asia">Asia</Label>
+                          </div>
+                          <div className="flex items-center space-x-2">
+                            <RadioGroupItem value="North America" id="na" />
+                            <Label htmlFor="na">North America</Label>
+                          </div>
+                          <div className="flex items-center space-x-2">
+                            <RadioGroupItem value="Europe" id="eu" />
+                            <Label htmlFor="eu">Europe</Label>
+                          </div>
+                          <div className="flex items-center space-x-2">
+                            <RadioGroupItem value="Global" id="global" />
+                            <Label htmlFor="global">Global</Label>
+                          </div>
+                        </RadioGroup>
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <FormField
+                  control={createSquadForm.control}
+                  name="playStyle"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Preferred Playstyle</FormLabel>
+                      <FormControl>
+                        <RadioGroup 
+                          onValueChange={field.onChange} 
+                          defaultValue={field.value}
+                          className="flex flex-col space-y-1"
+                        >
+                          <div className="flex items-center space-x-2">
+                            <RadioGroupItem value="Rusher" id="rusher" />
+                            <Label htmlFor="rusher">Rusher</Label>
+                          </div>
+                          <div className="flex items-center space-x-2">
+                            <RadioGroupItem value="Sniper" id="sniper" />
+                            <Label htmlFor="sniper">Sniper</Label>
+                          </div>
+                          <div className="flex items-center space-x-2">
+                            <RadioGroupItem value="Tactical" id="tactical" />
+                            <Label htmlFor="tactical">Tactical</Label>
+                          </div>
+                          <div className="flex items-center space-x-2">
+                            <RadioGroupItem value="Balanced" id="balanced" />
+                            <Label htmlFor="balanced">Balanced</Label>
+                          </div>
+                        </RadioGroup>
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={createSquadForm.control}
+                  name="schedule"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Playing Schedule</FormLabel>
+                      <FormControl>
+                        <RadioGroup 
+                          onValueChange={field.onChange} 
+                          defaultValue={field.value}
+                          className="flex flex-col space-y-1"
+                        >
+                          <div className="flex items-center space-x-2">
+                            <RadioGroupItem value="Morning" id="morning" />
+                            <Label htmlFor="morning">Morning</Label>
+                          </div>
+                          <div className="flex items-center space-x-2">
+                            <RadioGroupItem value="Afternoon" id="afternoon" />
+                            <Label htmlFor="afternoon">Afternoon</Label>
+                          </div>
+                          <div className="flex items-center space-x-2">
+                            <RadioGroupItem value="Evening" id="evening" />
+                            <Label htmlFor="evening">Evening</Label>
+                          </div>
+                          <div className="flex items-center space-x-2">
+                            <RadioGroupItem value="Night" id="night" />
+                            <Label htmlFor="night">Night</Label>
+                          </div>
+                          <div className="flex items-center space-x-2">
+                            <RadioGroupItem value="Weekend" id="weekend" />
+                            <Label htmlFor="weekend">Weekend</Label>
+                          </div>
+                          <div className="flex items-center space-x-2">
+                            <RadioGroupItem value="Flexible" id="flexible" />
+                            <Label htmlFor="flexible">Flexible</Label>
+                          </div>
+                        </RadioGroup>
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
+
+              <FormField
+                control={createSquadForm.control}
+                name="needed"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Number of Players Needed</FormLabel>
+                    <FormControl>
+                      <RadioGroup 
+                        onValueChange={field.onChange} 
+                        defaultValue={field.value}
+                        className="flex space-x-4"
+                      >
+                        <div className="flex items-center space-x-2">
+                          <RadioGroupItem value="1" id="one" />
+                          <Label htmlFor="one">1</Label>
+                        </div>
+                        <div className="flex items-center space-x-2">
+                          <RadioGroupItem value="2" id="two" />
+                          <Label htmlFor="two">2</Label>
+                        </div>
+                        <div className="flex items-center space-x-2">
+                          <RadioGroupItem value="3" id="three" />
+                          <Label htmlFor="three">3</Label>
+                        </div>
+                      </RadioGroup>
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={createSquadForm.control}
+                name="description"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Squad Description</FormLabel>
+                    <FormControl>
+                      <Textarea 
+                        placeholder="Tell others about your squad goals, playstyle preferences, and any requirements..."
+                        className="resize-none h-[100px]"
+                        {...field}
+                      />
+                    </FormControl>
+                    <FormDescription>
+                      Be specific about what you're looking for in teammates.
+                    </FormDescription>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <DialogFooter>
+                <Button type="button" variant="outline" onClick={() => setCreateSquadOpen(false)}>Cancel</Button>
+                <Button type="submit" variant="fire">Create Squad</Button>
+              </DialogFooter>
+            </form>
+          </Form>
+        </DialogContent>
+      </Dialog>
+
+      {/* Join Squad Dialog */}
+      <Dialog open={joinSquadOpen} onOpenChange={setJoinSquadOpen}>
+        <DialogContent className="sm:max-w-[500px]">
+          <DialogHeader>
+            <DialogTitle>Join {currentSquad?.username}'s Squad</DialogTitle>
+            <DialogDescription>
+              Send a request to join this squad. The squad leader will review your application.
+            </DialogDescription>
+          </DialogHeader>
+
+          <Form {...joinSquadForm}>
+            <form onSubmit={joinSquadForm.handleSubmit(submitJoinRequest)} className="space-y-4">
+              <FormField
+                control={joinSquadForm.control}
+                name="playstyle"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Your Playstyle</FormLabel>
+                    <FormControl>
+                      <RadioGroup 
+                        onValueChange={field.onChange} 
+                        defaultValue={field.value}
+                        className="flex flex-wrap gap-4"
+                      >
+                        <div className="flex items-center space-x-2">
+                          <RadioGroupItem value="Rusher" id="join-rusher" />
+                          <Label htmlFor="join-rusher">Rusher</Label>
+                        </div>
+                        <div className="flex items-center space-x-2">
+                          <RadioGroupItem value="Sniper" id="join-sniper" />
+                          <Label htmlFor="join-sniper">Sniper</Label>
+                        </div>
+                        <div className="flex items-center space-x-2">
+                          <RadioGroupItem value="Tactical" id="join-tactical" />
+                          <Label htmlFor="join-tactical">Tactical</Label>
+                        </div>
+                        <div className="flex items-center space-x-2">
+                          <RadioGroupItem value="Balanced" id="join-balanced" />
+                          <Label htmlFor="join-balanced">Balanced</Label>
+                        </div>
+                      </RadioGroup>
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={joinSquadForm.control}
+                name="message"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Message to Squad Leader</FormLabel>
+                    <FormControl>
+                      <Textarea 
+                        placeholder="Tell the squad leader about your experience and why you want to join..."
+                        className="resize-none h-[100px]"
+                        {...field}
+                      />
+                    </FormControl>
+                    <FormDescription>
+                      A personal message increases your chances of being accepted.
+                    </FormDescription>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <DialogFooter>
+                <Button type="button" variant="outline" onClick={() => setJoinSquadOpen(false)}>Cancel</Button>
+                <Button type="submit" variant="fire">Send Request</Button>
+              </DialogFooter>
+            </form>
+          </Form>
+        </DialogContent>
+      </Dialog>
     </section>
   );
 }
