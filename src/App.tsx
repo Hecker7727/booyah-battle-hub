@@ -12,6 +12,8 @@ import Tournaments from "./pages/Tournaments";
 import News from "./pages/News";
 import Forums from "./pages/Forums";
 import Login from "./pages/Login";
+import Guides from "./pages/Guides";
+import AdminPanel from "./pages/AdminPanel";
 
 const queryClient = new QueryClient();
 
@@ -29,6 +31,9 @@ const App = () => (
           <Route path="/news" element={<News />} />
           <Route path="/forums" element={<Forums />} />
           <Route path="/login" element={<Login />} />
+          <Route path="/guides" element={<Guides />} />
+          <Route path="/guides/:category" element={<Guides />} />
+          <Route path="/admin" element={<AdminPanel />} />
           <Route path="*" element={<NotFound />} />
         </Routes>
       </BrowserRouter>

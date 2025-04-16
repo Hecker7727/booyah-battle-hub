@@ -1,11 +1,23 @@
 
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { ArrowRight, Users, Trophy, Flame } from "lucide-react";
+import { ArrowRight, Users, Trophy, Flame, Video } from "lucide-react";
 import { useNavigate } from "react-router-dom";
+import { useState } from "react";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
+import { ClipUploadForm } from "@/components/ClipUploadForm";
 
 export function HeroSection() {
   const navigate = useNavigate();
+  const [showUploadDialog, setShowUploadDialog] = useState(false);
 
   const handleFindSquad = () => {
     navigate("/squad-finder");
@@ -13,6 +25,10 @@ export function HeroSection() {
 
   const handleJoinCommunity = () => {
     navigate("/login");
+  };
+
+  const handleUploadClip = () => {
+    setShowUploadDialog(true);
   };
 
   return (
@@ -49,6 +65,18 @@ export function HeroSection() {
               </Button>
               <Button variant="neon" size="lg" onClick={handleJoinCommunity}>
                 Join Community
+              </Button>
+            </div>
+            
+            <div className="flex gap-3">
+              <Button 
+                variant="outline" 
+                size="sm" 
+                className="flex items-center gap-2"
+                onClick={handleUploadClip}
+              >
+                <Video className="h-4 w-4" />
+                Upload Clip
               </Button>
             </div>
             
@@ -103,6 +131,20 @@ export function HeroSection() {
           </div>
         </div>
       </div>
+
+      {/* Clip Upload Dialog */}
+      <Dialog open={showUploadDialog} onOpenChange={setShowUploadDialog}>
+        <DialogContent className="sm:max-w-[500px]">
+          <DialogHeader>
+            <DialogTitle>Upload Your Gameplay Clip</DialogTitle>
+            <DialogDescription>
+              Share your best Free Fire moments with the community.
+            </DialogDescription>
+          </DialogHeader>
+          
+          <ClipUploadForm onSuccess={() => setShowUploadDialog(false)} />
+        </DialogContent>
+      </Dialog>
     </section>
   );
 }

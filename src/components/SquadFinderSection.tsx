@@ -8,17 +8,16 @@ import {
   Filter, 
   ChevronDown, 
   ChevronUp, 
-  Trophy,
+  MapPin, 
+  Flame, 
+  Shield,
   Clock,
-  Gamepad,
-  MessageSquare,
-  Check,
-  X,
+  Plus,
   User,
-  UserPlus,
-  PlusCircle
+  Gamepad2
 } from "lucide-react";
-
+import { useToast } from "@/hooks/use-toast";
+import { useNavigate } from "react-router-dom";
 import {
   Dialog,
   DialogContent,
@@ -29,7 +28,6 @@ import {
   DialogTrigger,
   DialogClose,
 } from "@/components/ui/dialog";
-
 import {
   Form,
   FormControl,
@@ -39,14 +37,8 @@ import {
   FormLabel,
   FormMessage,
 } from "@/components/ui/form";
-
 import { Input } from "@/components/ui/input";
-import { useToast } from "@/hooks/use-toast";
-import { useNavigate } from "react-router-dom";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { useForm } from "react-hook-form";
-import * as z from "zod";
-
+import { Textarea } from "@/components/ui/textarea";
 import {
   Select,
   SelectContent,
@@ -54,1210 +46,987 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { z } from "zod";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { useForm } from "react-hook-form";
 
-import {
-  Tabs,
-  TabsContent,
-  TabsList,
-  TabsTrigger,
-} from "@/components/ui/tabs";
-
-import {
-  HoverCard,
-  HoverCardContent,
-  HoverCardTrigger,
-} from "@/components/ui/hover-card";
-
-// Type definitions for our data
-type GameMode = "Battle Royale" | "Clash Squad" | "Lone Wolf";
+type GameMode = "Battle Royale" | "Clash Squad";
+type Region = "Global" | "Asia" | "Europe" | "North America" | "South America";
+type PlayStyle = "Aggressive" | "Balanced" | "Defensive" | "Rusher" | "Sniper";
+type SquadType = "Solo" | "Duo" | "Squad";
 type SkillLevel = "Beginner" | "Intermediate" | "Advanced" | "Pro";
-type PlayStyle = "Aggressive" | "Tactical" | "Balanced" | "Defensive";
-type Region = "Asia" | "Europe" | "North America" | "South America" | "Global";
-type SquadType = "Squad" | "Duo" | "Solo";
 
-type SquadRequest = {
+interface Member {
+  id: string;
+  name: string;
+  avatar?: string;
+}
+
+interface SquadRequest {
   id: number;
   playerId: string;
   playerName: string;
   gameMode: GameMode;
   region: Region;
-  skillLevel: SkillLevel;
   playStyle: PlayStyle;
   squadType: SquadType;
+  skillLevel: SkillLevel;
   description: string;
   spotsFilled: number;
   spotsTotal: number;
   createdAt: string;
-  members: SquadMember[];
-};
+  members: Member[];
+}
 
-type SquadMember = {
-  id: number;
-  name: string;
-  level: number;
-  role: string;
-};
-
-type Player = {
-  id: number;
-  name: string;
-  level: number;
-  skillLevel: SkillLevel;
-  gameMode: GameMode;
-  region: Region;
-  playStyle: PlayStyle;
-  gamesPlayed: number;
-  winRate: string;
-  lastActive: string;
-  isOnline: boolean;
-};
-
-// Sample data
-const SAMPLE_PLAYERS: Player[] = [
-  {
-    id: 1,
-    name: "HeadshotHero",
-    level: 45,
-    skillLevel: "Advanced",
-    gameMode: "Battle Royale",
-    region: "Asia",
-    playStyle: "Aggressive",
-    gamesPlayed: 789,
-    winRate: "28%",
-    lastActive: "2 minutes ago",
-    isOnline: true
-  },
-  {
-    id: 2,
-    name: "SniperQueen",
-    level: 67,
-    skillLevel: "Pro",
-    gameMode: "Clash Squad",
-    region: "North America",
-    playStyle: "Tactical",
-    gamesPlayed: 1243,
-    winRate: "32%",
-    lastActive: "Just now",
-    isOnline: true
-  },
-  {
-    id: 3,
-    name: "TacticalTiger",
-    level: 38,
-    skillLevel: "Intermediate",
-    gameMode: "Battle Royale",
-    region: "Europe",
-    playStyle: "Balanced",
-    gamesPlayed: 562,
-    winRate: "22%",
-    lastActive: "1 hour ago",
-    isOnline: false
-  },
-  {
-    id: 4,
-    name: "StealthShadow",
-    level: 52,
-    skillLevel: "Advanced",
-    gameMode: "Lone Wolf",
-    region: "South America",
-    playStyle: "Defensive",
-    gamesPlayed: 927,
-    winRate: "25%",
-    lastActive: "5 hours ago",
-    isOnline: false
-  },
-  {
-    id: 5,
-    name: "BattleBeard",
-    level: 71,
-    skillLevel: "Pro",
-    gameMode: "Battle Royale",
-    region: "Global",
-    playStyle: "Aggressive",
-    gamesPlayed: 1524,
-    winRate: "35%",
-    lastActive: "30 minutes ago",
-    isOnline: true
-  },
-  {
-    id: 6,
-    name: "FlankMaster",
-    level: 49,
-    skillLevel: "Advanced",
-    gameMode: "Clash Squad",
-    region: "Asia",
-    playStyle: "Tactical",
-    gamesPlayed: 873,
-    winRate: "29%",
-    lastActive: "15 minutes ago",
-    isOnline: true
-  }
-];
+// Form schema for creating a squad request
+const squadRequestSchema = z.object({
+  gameMode: z.enum(["Battle Royale", "Clash Squad"], {
+    required_error: "Please select a game mode",
+  }),
+  region: z.enum(["Global", "Asia", "Europe", "North America", "South America"], {
+    required_error: "Please select a region",
+  }),
+  playStyle: z.enum(["Aggressive", "Balanced", "Defensive", "Rusher", "Sniper"], {
+    required_error: "Please select a play style",
+  }),
+  squadType: z.enum(["Solo", "Duo", "Squad"], {
+    required_error: "Please select a squad type",
+  }),
+  skillLevel: z.enum(["Beginner", "Intermediate", "Advanced", "Pro"], {
+    required_error: "Please select your skill level",
+  }),
+  description: z.string().min(10, {
+    message: "Description must be at least 10 characters.",
+  }),
+});
 
 const SAMPLE_SQUAD_REQUESTS: SquadRequest[] = [
   {
     id: 1,
-    playerId: "12345",
-    playerName: "HeadshotHero",
+    playerId: "player123",
+    playerName: "FireStorm",
     gameMode: "Battle Royale",
     region: "Asia",
-    skillLevel: "Advanced",
     playStyle: "Aggressive",
     squadType: "Squad",
-    description: "Looking for aggressive players who know how to coordinate attacks. No mic needed, just follow my pings.",
-    spotsFilled: 1,
+    skillLevel: "Advanced",
+    description: "Looking for experienced players for Heroic push. Must have mic and good communication skills.",
+    spotsFilled: 2,
     spotsTotal: 4,
-    createdAt: "2025-04-15T15:30:00Z",
+    createdAt: "2025-04-14T10:30:00Z",
     members: [
-      {
-        id: 1,
-        name: "HeadshotHero",
-        level: 45,
-        role: "Leader"
-      }
-    ]
+      { id: "player123", name: "FireStorm" },
+      { id: "player456", name: "ShadowKnight" },
+    ],
   },
   {
     id: 2,
-    playerId: "23456",
-    playerName: "SniperQueen",
-    gameMode: "Clash Squad",
-    region: "North America",
-    skillLevel: "Pro",
-    playStyle: "Tactical",
-    squadType: "Duo",
-    description: "Need one good player for CS tournament practice. Must have mic and be available evenings.",
-    spotsFilled: 1,
-    spotsTotal: 2,
-    createdAt: "2025-04-16T10:15:00Z",
-    members: [
-      {
-        id: 2,
-        name: "SniperQueen",
-        level: 67,
-        role: "Leader"
-      }
-    ]
-  },
-  {
-    id: 3,
-    playerId: "34567",
-    playerName: "TacticalTiger",
+    playerId: "player789",
+    playerName: "HeadshotQueen",
     gameMode: "Battle Royale",
     region: "Europe",
     playStyle: "Balanced",
     squadType: "Squad",
-    description: "Casual squad for rank pushing. No pressure, just have fun and communicate.",
-    spotsFilled: 2,
+    skillLevel: "Intermediate",
+    description: "Casual squad for weekend games. All skill levels welcome, just be friendly!",
+    spotsFilled: 1,
     spotsTotal: 4,
-    createdAt: "2025-04-16T08:45:00Z",
+    createdAt: "2025-04-15T14:20:00Z",
     members: [
-      {
-        id: 3,
-        name: "TacticalTiger",
-        level: 38,
-        role: "Leader"
-      },
-      {
-        id: 6,
-        name: "FlankMaster",
-        level: 49,
-        role: "Member"
-      }
-    ]
+      { id: "player789", name: "HeadshotQueen" },
+    ],
   },
   {
-    id: 4,
-    playerId: "45678",
-    playerName: "BattleBeard",
+    id: 3,
+    playerId: "player101",
+    playerName: "BooyahKing",
     gameMode: "Battle Royale",
     region: "Global",
     playStyle: "Aggressive",
     squadType: "Duo",
-    description: "Looking for a partner for duo matches. Prefer someone who can play daily.",
+    skillLevel: "Pro",
+    description: "Pro player looking for another skilled player for tournament practice. Must be Heroic rank or above.",
+    spotsFilled: 1,
+    spotsTotal: 2,
+    createdAt: "2025-04-16T09:15:00Z",
+    members: [
+      { id: "player101", name: "BooyahKing" },
+    ],
+  },
+  {
+    id: 4,
+    playerId: "player202",
+    playerName: "SniperElite",
+    gameMode: "Clash Squad",
+    region: "North America",
+    playStyle: "Sniper",
+    squadType: "Squad",
+    skillLevel: "Advanced",
+    description: "Clash Squad team looking for 2 more. Need at least one rusher and one support player.",
+    spotsFilled: 2,
+    spotsTotal: 4,
+    createdAt: "2025-04-15T20:45:00Z",
+    members: [
+      { id: "player202", name: "SniperElite" },
+      { id: "player303", name: "FlankMaster" },
+    ],
+  },
+  {
+    id: 5,
+    playerId: "player404",
+    playerName: "LoneWolf",
+    gameMode: "Clash Squad",
+    region: "South America",
+    playStyle: "Defensive",
+    squadType: "Solo",
+    skillLevel: "Beginner",
+    description: "New player looking to join a Clash Squad team. Can play any role, just want to learn and improve.",
     spotsFilled: 1,
     spotsTotal: 2,
     createdAt: "2025-04-16T12:30:00Z",
     members: [
-      {
-        id: 5,
-        name: "BattleBeard",
-        level: 71,
-        role: "Leader"
-      }
-    ]
-  }
+      { id: "player404", name: "LoneWolf" },
+    ],
+  },
 ];
 
-// Create Squad Request Form schema
-const createSquadSchema = z.object({
-  gameMode: z.enum(["Battle Royale", "Clash Squad", "Lone Wolf"]),
-  region: z.enum(["Asia", "Europe", "North America", "South America", "Global"]),
-  skillLevel: z.enum(["Beginner", "Intermediate", "Advanced", "Pro"]),
-  playStyle: z.enum(["Aggressive", "Tactical", "Balanced", "Defensive"]),
-  squadType: z.enum(["Squad", "Duo", "Solo"]),
-  description: z.string().min(10, {
-    message: "Description must be at least 10 characters.",
-  }).max(200, {
-    message: "Description must not exceed 200 characters.",
-  }),
-  spotsTotal: z.number().min(2).max(4)
-});
-
 export function SquadFinderSection() {
-  const [players, setPlayers] = useState<Player[]>(SAMPLE_PLAYERS);
   const [squadRequests, setSquadRequests] = useState<SquadRequest[]>(SAMPLE_SQUAD_REQUESTS);
-  const [filter, setFilter] = useState(false);
-  const [selectedPlayer, setSelectedPlayer] = useState<Player | null>(null);
-  const [currentTab, setCurrentTab] = useState("squad-requests");
-  const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
-  const [isJoinDialogOpen, setIsJoinDialogOpen] = useState(false);
-  const [selectedRequest, setSelectedRequest] = useState<SquadRequest | null>(null);
-  
+  const [filterOpen, setFilterOpen] = useState(false);
   const [filters, setFilters] = useState({
     gameMode: "all",
     region: "all",
-    skillLevel: "all",
     playStyle: "all",
-    squadType: "all"
+    squadType: "all",
+    skillLevel: "all",
   });
+  const [isCreatingRequest, setIsCreatingRequest] = useState(false);
+  const [showJoinDialog, setShowJoinDialog] = useState(false);
+  const [selectedRequest, setSelectedRequest] = useState<SquadRequest | null>(null);
   
   const { toast } = useToast();
   const navigate = useNavigate();
+  
+  // Check if user is logged in
+  const isLoggedIn = false; // Replace with actual auth logic in production
 
-  // Initialize the form with default values
-  const form = useForm<z.infer<typeof createSquadSchema>>({
-    resolver: zodResolver(createSquadSchema),
+  const form = useForm<z.infer<typeof squadRequestSchema>>({
+    resolver: zodResolver(squadRequestSchema),
     defaultValues: {
       gameMode: "Battle Royale",
       region: "Global",
-      skillLevel: "Intermediate",
       playStyle: "Balanced",
       squadType: "Squad",
+      skillLevel: "Intermediate",
       description: "",
-      spotsTotal: 4
     },
   });
 
   const toggleFilter = () => {
-    setFilter(!filter);
+    setFilterOpen(!filterOpen);
   };
 
-  const applyFilter = (key: keyof typeof filters, value: string) => {
+  const setFilter = (key: string, value: string) => {
     setFilters(prev => ({
       ...prev,
       [key]: value
     }));
   };
 
-  const handleViewProfile = (player: Player) => {
-    setSelectedPlayer(player);
-  };
-
-  const handleCreateSquad = (values: z.infer<typeof createSquadSchema>) => {
-    // Check if user is logged in (this would be replaced with actual auth check)
-    // For demo, we'll assume user is not logged in and redirect to login
-    navigate("/login");
+  const handleCreateSquadRequest = (values: z.infer<typeof squadRequestSchema>) => {
+    if (!isLoggedIn) {
+      navigate("/login");
+      toast({
+        title: "Login required",
+        description: "Please login to create a squad request",
+      });
+      return;
+    }
     
-    // In a real app with auth, the below code would run instead
-    /*
-    const newSquadRequest: SquadRequest = {
-      id: squadRequests.length + 1,
-      playerId: "current-user-id",
-      playerName: "CurrentUserName", // Would be from auth
+    console.log("Creating squad request:", values);
+    
+    // In a real app, this would be sent to a backend
+    const newRequest: SquadRequest = {
+      id: Date.now(),
+      playerId: "currentUser123",
+      playerName: "CurrentUser",
       gameMode: values.gameMode,
       region: values.region,
-      skillLevel: values.skillLevel,
       playStyle: values.playStyle,
       squadType: values.squadType,
+      skillLevel: values.skillLevel,
       description: values.description,
-      spotsFilled: 1, // Start with just the creator
-      spotsTotal: values.spotsTotal,
+      spotsFilled: 1,
+      spotsTotal: values.squadType === "Solo" ? 1 : values.squadType === "Duo" ? 2 : 4,
       createdAt: new Date().toISOString(),
       members: [
-        {
-          id: 999, // Would be current user's id
-          name: "CurrentUserName", // Would be from auth
-          level: 50, // Would be from user profile
-          role: "Leader"
-        }
-      ]
+        { id: "currentUser123", name: "CurrentUser" },
+      ],
     };
     
-    setSquadRequests(prev => [...prev, newSquadRequest]);
-    setIsCreateDialogOpen(false);
-    form.reset();
+    setSquadRequests([newRequest, ...squadRequests]);
+    setIsCreatingRequest(false);
     
     toast({
       title: "Squad request created!",
-      description: "Other players can now join your squad.",
+      description: "Players can now see your request and join your squad.",
     });
-    */
+    
+    form.reset();
   };
 
-  const handleJoinSquad = (request: SquadRequest) => {
-    // Check if user is logged in (this would be replaced with actual auth check)
-    // For demo, we'll assume user is not logged in and redirect to login
-    navigate("/login");
+  const handleJoinSquad = (squadId: number) => {
+    if (!isLoggedIn) {
+      navigate("/login");
+      return;
+    }
+
+    const squadToJoin = squadRequests.find(squad => squad.id === squadId);
+    if (!squadToJoin) return;
     
-    // In a real app with auth, the below code would run instead
-    /*
-    // Check if squad is already full
-    if (request.spotsFilled >= request.spotsTotal) {
+    if (squadToJoin.spotsFilled >= squadToJoin.spotsTotal) {
       toast({
-        title: "Cannot join squad",
-        description: "This squad is already full.",
-        variant: "destructive"
+        title: "Squad is full",
+        description: "This squad has reached its maximum number of members.",
+        variant: "destructive",
       });
       return;
     }
     
-    // Check if user is already in this squad
-    const isAlreadyMember = request.members.some(member => member.id === currentUser.id);
-    if (isAlreadyMember) {
-      toast({
-        title: "Already a member",
-        description: "You are already part of this squad.",
-        variant: "destructive"
-      });
-      return;
-    }
+    setSelectedRequest(squadToJoin);
+    setShowJoinDialog(true);
+  };
+
+  const confirmJoinSquad = () => {
+    if (!selectedRequest) return;
     
-    // Add user to squad
-    const updatedRequest = {
-      ...request,
-      spotsFilled: request.spotsFilled + 1,
-      members: [
-        ...request.members,
-        {
-          id: currentUser.id,
-          name: currentUser.name,
-          level: currentUser.level,
-          role: "Member"
-        }
-      ]
-    };
+    // In a real app, this would call a backend API
+    const updatedRequests = squadRequests.map(request => {
+      if (request.id === selectedRequest.id) {
+        const updatedRequest = {
+          ...request,
+          spotsFilled: request.spotsFilled + 1,
+          members: [
+            ...request.members,
+            { id: "currentUser123", name: "CurrentUser" }
+          ]
+        };
+        return updatedRequest;
+      }
+      return request;
+    });
     
-    setSquadRequests(prev => 
-      prev.map(item => item.id === request.id ? updatedRequest : item)
-    );
-    
-    setIsJoinDialogOpen(false);
+    setSquadRequests(updatedRequests);
+    setShowJoinDialog(false);
     
     toast({
-      title: "Joined squad!",
-      description: `You have joined ${request.playerName}'s squad.`,
+      title: "Squad joined!",
+      description: `You have joined ${selectedRequest.playerName}'s squad.`,
     });
-    */
   };
-
-  // Filter squad requests based on user filters
-  const filteredSquadRequests = squadRequests.filter(request => {
+  
+  // Filter squad requests based on selected filters
+  const filteredRequests = squadRequests.filter(request => {
     return (filters.gameMode === "all" || request.gameMode === filters.gameMode) &&
            (filters.region === "all" || request.region === filters.region) &&
-           (filters.skillLevel === "all" || request.skillLevel === filters.skillLevel) &&
            (filters.playStyle === "all" || request.playStyle === filters.playStyle) &&
-           (filters.squadType === "all" || request.squadType === filters.squadType);
+           (filters.squadType === "all" || request.squadType === filters.squadType) &&
+           (filters.skillLevel === "all" || request.skillLevel === filters.skillLevel);
   });
 
-  // Filter players based on user filters
-  const filteredPlayers = players.filter(player => {
-    return (filters.gameMode === "all" || player.gameMode === filters.gameMode) &&
-           (filters.region === "all" || player.region === filters.region) &&
-           (filters.skillLevel === "all" || player.skillLevel === filters.skillLevel) &&
-           (filters.playStyle === "all" || player.playStyle === filters.playStyle);
-  });
+  // Get max spots based on squad type
+  const getMaxSpots = (squadType: SquadType) => {
+    switch (squadType) {
+      case "Solo":
+        return 1;
+      case "Duo":
+        return 2;
+      case "Squad":
+        return 4;
+      default:
+        return 4;
+    }
+  };
+
+  // Get max slots for Clash Squad mode
+  const getClashSquadSpots = (squadType: SquadType) => {
+    if (squadType === "Squad") return 4;
+    return squadType === "Duo" ? 2 : 1;
+  };
 
   return (
     <section className="py-16 relative">
-      {/* Background effect */}
       <div className="absolute inset-0 z-0" style={{
         backgroundImage: `
-          radial-gradient(circle at 70% 20%, rgba(155, 135, 245, 0.15) 0%, rgba(0, 0, 0, 0) 50%),
-          radial-gradient(circle at 30% 70%, rgba(234, 56, 76, 0.1) 0%, rgba(0, 0, 0, 0) 50%)
+          radial-gradient(circle at 20% 30%, rgba(155, 135, 245, 0.15) 0%, rgba(0, 0, 0, 0) 50%),
+          radial-gradient(circle at 80% 70%, rgba(234, 56, 76, 0.1) 0%, rgba(0, 0, 0, 0) 50%)
         `
       }}></div>
       
       <div className="container relative z-10">
         <div className="flex flex-col items-center text-center mb-12">
-          <Badge variant="neon" className="mb-4">Squad Finder</Badge>
+          <Badge variant="fire" className="mb-4">Squad Finder</Badge>
           <h2 className="text-3xl md:text-4xl font-bold mb-4">
-            Find Your Perfect <span className="text-booyah-neon-blue animate-pulse-neon">Squad</span>
+            Find Your Perfect <span className="text-booyah-fire">Squad</span>
           </h2>
           <p className="text-muted-foreground max-w-[700px]">
-            Connect with players who match your playstyle, skill level, and goals. 
-            Whether you're looking for tournament teammates or casual squadmates, find them here.
+            Connect with players who match your playstyle, region and skill level. 
+            Create a squad request or join an existing one to team up for matches and tournaments.
           </p>
         </div>
-
-        {/* Create Squad Request Button */}
-        <div className="mb-8 flex justify-center">
-          <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
-            <DialogTrigger asChild>
-              <Button variant="fire" size="lg" className="gap-2">
-                <PlusCircle className="h-5 w-5" />
+        
+        <div className="flex flex-col md:flex-row gap-6 mb-10">
+          <div className="flex-1">
+            <div className="flex items-center justify-between mb-6">
+              <Button 
+                variant="outline" 
+                onClick={toggleFilter}
+                className="flex items-center gap-2"
+              >
+                <Filter className="h-4 w-4" />
+                Filter Squads
+                {filterOpen ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
+              </Button>
+              
+              <Button 
+                variant="fire" 
+                className="flex items-center gap-2"
+                onClick={() => setIsCreatingRequest(true)}
+              >
+                <Plus className="h-4 w-4" />
                 Create Squad Request
               </Button>
-            </DialogTrigger>
-            <DialogContent className="sm:max-w-[500px]">
-              <DialogHeader>
-                <DialogTitle>Create a Squad Request</DialogTitle>
-                <DialogDescription>
-                  Fill out the details for your squad. Other players will be able to see and join your request.
-                </DialogDescription>
-              </DialogHeader>
-              
-              <Form {...form}>
-                <form onSubmit={form.handleSubmit(handleCreateSquad)} className="space-y-4">
-                  <div className="grid grid-cols-2 gap-4">
-                    <FormField
-                      control={form.control}
-                      name="gameMode"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Game Mode</FormLabel>
-                          <Select onValueChange={field.onChange} defaultValue={field.value}>
-                            <FormControl>
-                              <SelectTrigger>
-                                <SelectValue placeholder="Select game mode" />
-                              </SelectTrigger>
-                            </FormControl>
-                            <SelectContent>
-                              <SelectItem value="Battle Royale">Battle Royale</SelectItem>
-                              <SelectItem value="Clash Squad">Clash Squad</SelectItem>
-                              <SelectItem value="Lone Wolf">Lone Wolf</SelectItem>
-                            </SelectContent>
-                          </Select>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                    
-                    <FormField
-                      control={form.control}
-                      name="squadType"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Squad Type</FormLabel>
-                          <Select onValueChange={field.onChange} defaultValue={field.value}>
-                            <FormControl>
-                              <SelectTrigger>
-                                <SelectValue placeholder="Select squad type" />
-                              </SelectTrigger>
-                            </FormControl>
-                            <SelectContent>
-                              <SelectItem value="Squad">Squad (4 players)</SelectItem>
-                              <SelectItem value="Duo">Duo (2 players)</SelectItem>
-                              <SelectItem value="Solo">Solo (find 1 player)</SelectItem>
-                            </SelectContent>
-                          </Select>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                  </div>
-                  
-                  <div className="grid grid-cols-2 gap-4">
-                    <FormField
-                      control={form.control}
-                      name="region"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Region</FormLabel>
-                          <Select onValueChange={field.onChange} defaultValue={field.value}>
-                            <FormControl>
-                              <SelectTrigger>
-                                <SelectValue placeholder="Select region" />
-                              </SelectTrigger>
-                            </FormControl>
-                            <SelectContent>
-                              <SelectItem value="Asia">Asia</SelectItem>
-                              <SelectItem value="Europe">Europe</SelectItem>
-                              <SelectItem value="North America">North America</SelectItem>
-                              <SelectItem value="South America">South America</SelectItem>
-                              <SelectItem value="Global">Global</SelectItem>
-                            </SelectContent>
-                          </Select>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                    
-                    <FormField
-                      control={form.control}
-                      name="skillLevel"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Skill Level</FormLabel>
-                          <Select onValueChange={field.onChange} defaultValue={field.value}>
-                            <FormControl>
-                              <SelectTrigger>
-                                <SelectValue placeholder="Select skill level" />
-                              </SelectTrigger>
-                            </FormControl>
-                            <SelectContent>
-                              <SelectItem value="Beginner">Beginner</SelectItem>
-                              <SelectItem value="Intermediate">Intermediate</SelectItem>
-                              <SelectItem value="Advanced">Advanced</SelectItem>
-                              <SelectItem value="Pro">Pro</SelectItem>
-                            </SelectContent>
-                          </Select>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                  </div>
-                  
-                  <div className="grid grid-cols-2 gap-4">
-                    <FormField
-                      control={form.control}
-                      name="playStyle"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Play Style</FormLabel>
-                          <Select onValueChange={field.onChange} defaultValue={field.value}>
-                            <FormControl>
-                              <SelectTrigger>
-                                <SelectValue placeholder="Select play style" />
-                              </SelectTrigger>
-                            </FormControl>
-                            <SelectContent>
-                              <SelectItem value="Aggressive">Aggressive</SelectItem>
-                              <SelectItem value="Tactical">Tactical</SelectItem>
-                              <SelectItem value="Balanced">Balanced</SelectItem>
-                              <SelectItem value="Defensive">Defensive</SelectItem>
-                            </SelectContent>
-                          </Select>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                    
-                    <FormField
-                      control={form.control}
-                      name="spotsTotal"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Team Size</FormLabel>
-                          <Select 
-                            onValueChange={(value) => field.onChange(parseInt(value))} 
-                            defaultValue={field.value.toString()}
-                          >
-                            <FormControl>
-                              <SelectTrigger>
-                                <SelectValue placeholder="Select team size" />
-                              </SelectTrigger>
-                            </FormControl>
-                            <SelectContent>
-                              <SelectItem value="2">2 Players</SelectItem>
-                              <SelectItem value="3">3 Players</SelectItem>
-                              <SelectItem value="4">4 Players</SelectItem>
-                            </SelectContent>
-                          </Select>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                  </div>
-                  
-                  <FormField
-                    control={form.control}
-                    name="description"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Description</FormLabel>
-                        <FormControl>
-                          <Input
-                            placeholder="Tell others what kind of players you're looking for..."
-                            {...field}
-                          />
-                        </FormControl>
-                        <FormDescription>
-                          Describe your gaming goals and requirements for potential squadmates.
-                        </FormDescription>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                  
-                  <DialogFooter>
-                    <Button type="submit" variant="fire">Create Request</Button>
-                  </DialogFooter>
-                </form>
-              </Form>
-            </DialogContent>
-          </Dialog>
-        </div>
-
-        {/* Tab Navigation */}
-        <Tabs defaultValue="squad-requests" className="mb-8" onValueChange={setCurrentTab}>
-          <TabsList className="grid w-full max-w-md mx-auto grid-cols-2">
-            <TabsTrigger value="squad-requests" className="gap-2">
-              <Users className="h-4 w-4" />
-              Squad Requests
-            </TabsTrigger>
-            <TabsTrigger value="players" className="gap-2">
-              <User className="h-4 w-4" />
-              Find Players
-            </TabsTrigger>
-          </TabsList>
-        </Tabs>
-
-        {/* Filters */}
-        <div className="mb-8">
-          <Button 
-            variant="outline" 
-            onClick={toggleFilter}
-            className="flex items-center gap-2 mb-4"
-          >
-            <Filter className="h-4 w-4" />
-            Filter {currentTab === "squad-requests" ? "Squad Requests" : "Players"}
-            {filter ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
-          </Button>
-          
-          {filter && (
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 p-4 bg-card/80 rounded-lg border border-border mb-6">
-              <div>
-                <h4 className="text-sm font-medium mb-2">Game Mode</h4>
-                <div className="flex gap-2 flex-wrap">
-                  <Badge 
-                    variant={filters.gameMode === "all" ? "neon" : "outline"}
-                    className="cursor-pointer"
-                    onClick={() => applyFilter("gameMode", "all")}
-                  >
-                    All
-                  </Badge>
-                  <Badge 
-                    variant={filters.gameMode === "Battle Royale" ? "neon" : "outline"}
-                    className="cursor-pointer"
-                    onClick={() => applyFilter("gameMode", "Battle Royale")}
-                  >
-                    Battle Royale
-                  </Badge>
-                  <Badge 
-                    variant={filters.gameMode === "Clash Squad" ? "neon" : "outline"}
-                    className="cursor-pointer"
-                    onClick={() => applyFilter("gameMode", "Clash Squad")}
-                  >
-                    Clash Squad
-                  </Badge>
-                  <Badge 
-                    variant={filters.gameMode === "Lone Wolf" ? "neon" : "outline"}
-                    className="cursor-pointer"
-                    onClick={() => applyFilter("gameMode", "Lone Wolf")}
-                  >
-                    Lone Wolf
-                  </Badge>
-                </div>
-              </div>
-              
-              <div>
-                <h4 className="text-sm font-medium mb-2">Region</h4>
-                <div className="flex gap-2 flex-wrap">
-                  <Badge 
-                    variant={filters.region === "all" ? "neon" : "outline"}
-                    className="cursor-pointer"
-                    onClick={() => applyFilter("region", "all")}
-                  >
-                    All
-                  </Badge>
-                  <Badge 
-                    variant={filters.region === "Asia" ? "neon" : "outline"}
-                    className="cursor-pointer"
-                    onClick={() => applyFilter("region", "Asia")}
-                  >
-                    Asia
-                  </Badge>
-                  <Badge 
-                    variant={filters.region === "Europe" ? "neon" : "outline"}
-                    className="cursor-pointer"
-                    onClick={() => applyFilter("region", "Europe")}
-                  >
-                    Europe
-                  </Badge>
-                  <Badge 
-                    variant={filters.region === "North America" ? "neon" : "outline"}
-                    className="cursor-pointer"
-                    onClick={() => applyFilter("region", "North America")}
-                  >
-                    North America
-                  </Badge>
-                  <Badge 
-                    variant={filters.region === "South America" ? "neon" : "outline"}
-                    className="cursor-pointer"
-                    onClick={() => applyFilter("region", "South America")}
-                  >
-                    South America
-                  </Badge>
-                  <Badge 
-                    variant={filters.region === "Global" ? "neon" : "outline"}
-                    className="cursor-pointer"
-                    onClick={() => applyFilter("region", "Global")}
-                  >
-                    Global
-                  </Badge>
-                </div>
-              </div>
-              
-              <div>
-                <h4 className="text-sm font-medium mb-2">Skill Level</h4>
-                <div className="flex gap-2 flex-wrap">
-                  <Badge 
-                    variant={filters.skillLevel === "all" ? "neon" : "outline"}
-                    className="cursor-pointer"
-                    onClick={() => applyFilter("skillLevel", "all")}
-                  >
-                    All
-                  </Badge>
-                  <Badge 
-                    variant={filters.skillLevel === "Beginner" ? "neon" : "outline"}
-                    className="cursor-pointer"
-                    onClick={() => applyFilter("skillLevel", "Beginner")}
-                  >
-                    Beginner
-                  </Badge>
-                  <Badge 
-                    variant={filters.skillLevel === "Intermediate" ? "neon" : "outline"}
-                    className="cursor-pointer"
-                    onClick={() => applyFilter("skillLevel", "Intermediate")}
-                  >
-                    Intermediate
-                  </Badge>
-                  <Badge 
-                    variant={filters.skillLevel === "Advanced" ? "neon" : "outline"}
-                    className="cursor-pointer"
-                    onClick={() => applyFilter("skillLevel", "Advanced")}
-                  >
-                    Advanced
-                  </Badge>
-                  <Badge 
-                    variant={filters.skillLevel === "Pro" ? "neon" : "outline"}
-                    className="cursor-pointer"
-                    onClick={() => applyFilter("skillLevel", "Pro")}
-                  >
-                    Pro
-                  </Badge>
-                </div>
-              </div>
-              
-              <div>
-                <h4 className="text-sm font-medium mb-2">Play Style</h4>
-                <div className="flex gap-2 flex-wrap">
-                  <Badge 
-                    variant={filters.playStyle === "all" ? "neon" : "outline"}
-                    className="cursor-pointer"
-                    onClick={() => applyFilter("playStyle", "all")}
-                  >
-                    All
-                  </Badge>
-                  <Badge 
-                    variant={filters.playStyle === "Aggressive" ? "neon" : "outline"}
-                    className="cursor-pointer"
-                    onClick={() => applyFilter("playStyle", "Aggressive")}
-                  >
-                    Aggressive
-                  </Badge>
-                  <Badge 
-                    variant={filters.playStyle === "Tactical" ? "neon" : "outline"}
-                    className="cursor-pointer"
-                    onClick={() => applyFilter("playStyle", "Tactical")}
-                  >
-                    Tactical
-                  </Badge>
-                  <Badge 
-                    variant={filters.playStyle === "Balanced" ? "neon" : "outline"}
-                    className="cursor-pointer"
-                    onClick={() => applyFilter("playStyle", "Balanced")}
-                  >
-                    Balanced
-                  </Badge>
-                  <Badge 
-                    variant={filters.playStyle === "Defensive" ? "neon" : "outline"}
-                    className="cursor-pointer"
-                    onClick={() => applyFilter("playStyle", "Defensive")}
-                  >
-                    Defensive
-                  </Badge>
-                </div>
-              </div>
-              
-              {currentTab === "squad-requests" && (
-                <div>
-                  <h4 className="text-sm font-medium mb-2">Squad Type</h4>
-                  <div className="flex gap-2 flex-wrap">
-                    <Badge 
-                      variant={filters.squadType === "all" ? "neon" : "outline"}
-                      className="cursor-pointer"
-                      onClick={() => applyFilter("squadType", "all")}
-                    >
-                      All
-                    </Badge>
-                    <Badge 
-                      variant={filters.squadType === "Squad" ? "neon" : "outline"}
-                      className="cursor-pointer"
-                      onClick={() => applyFilter("squadType", "Squad")}
-                    >
-                      Squad
-                    </Badge>
-                    <Badge 
-                      variant={filters.squadType === "Duo" ? "neon" : "outline"}
-                      className="cursor-pointer"
-                      onClick={() => applyFilter("squadType", "Duo")}
-                    >
-                      Duo
-                    </Badge>
-                    <Badge 
-                      variant={filters.squadType === "Solo" ? "neon" : "outline"}
-                      className="cursor-pointer"
-                      onClick={() => applyFilter("squadType", "Solo")}
-                    >
-                      Solo
-                    </Badge>
-                  </div>
-                </div>
-              )}
             </div>
-          )}
-        </div>
-
-        {/* Squad Requests Tab Content */}
-        <div className={`${currentTab === "squad-requests" ? "block" : "hidden"}`}>
-          <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-            {filteredSquadRequests.map(request => (
-              <div key={request.id} className="neon-card p-6 flex flex-col">
-                <div className="mb-4">
-                  <div className="flex justify-between items-start mb-2">
-                    <Badge variant="neon" className="mb-2">{request.squadType}</Badge>
-                    <Badge variant={request.spotsFilled < request.spotsTotal ? "fire" : "secondary"}>
-                      {request.spotsFilled < request.spotsTotal ? "Recruiting" : "Full"}
-                    </Badge>
-                  </div>
-                  
-                  <h3 className="text-xl font-bold mb-1">{request.playerName}'s Squad</h3>
-                  <div className="text-sm text-muted-foreground mb-4">{request.description}</div>
-                  
-                  <div className="grid grid-cols-2 gap-y-2 gap-x-4 mb-4 text-sm">
-                    <div className="flex items-center gap-2">
-                      <Gamepad className="h-4 w-4 text-booyah-neon-blue" />
-                      <span>{request.gameMode}</span>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <Trophy className="h-4 w-4 text-booyah-neon-blue" />
-                      <span>{request.skillLevel}</span>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <Users className="h-4 w-4 text-booyah-neon-blue" />
-                      <span>{request.spotsFilled}/{request.spotsTotal} Members</span>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <Clock className="h-4 w-4 text-booyah-neon-blue" />
-                      <span>{new Date(request.createdAt).toLocaleDateString()}</span>
+            
+            {filterOpen && (
+              <div className="glass-effect p-4 rounded-lg mb-6">
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  <div>
+                    <h4 className="text-sm font-medium mb-2">Game Mode</h4>
+                    <div className="flex gap-2 flex-wrap">
+                      <Badge 
+                        variant={filters.gameMode === "all" ? "neon" : "outline"}
+                        className="cursor-pointer"
+                        onClick={() => setFilter("gameMode", "all")}
+                      >
+                        All
+                      </Badge>
+                      <Badge 
+                        variant={filters.gameMode === "Battle Royale" ? "neon" : "outline"}
+                        className="cursor-pointer"
+                        onClick={() => setFilter("gameMode", "Battle Royale")}
+                      >
+                        Battle Royale
+                      </Badge>
+                      <Badge 
+                        variant={filters.gameMode === "Clash Squad" ? "neon" : "outline"}
+                        className="cursor-pointer"
+                        onClick={() => setFilter("gameMode", "Clash Squad")}
+                      >
+                        Clash Squad
+                      </Badge>
                     </div>
                   </div>
                   
-                  <div className="flex items-center gap-2 mb-4">
-                    <span className="text-sm font-medium">Members:</span>
-                    <div className="flex -space-x-2">
-                      {request.members.map((member, index) => (
-                        <HoverCard key={member.id}>
-                          <HoverCardTrigger asChild>
-                            <div className="h-8 w-8 rounded-full bg-booyah-purple/50 flex items-center justify-center text-xs font-bold border-2 border-background cursor-pointer">
-                              {member.name.charAt(0)}
-                            </div>
-                          </HoverCardTrigger>
-                          <HoverCardContent side="top" className="w-64">
-                            <div className="flex flex-col gap-2">
-                              <div className="font-semibold">{member.name}</div>
-                              <div className="text-sm flex items-center gap-2">
-                                <span className="text-muted-foreground">Level:</span>
-                                <span>{member.level}</span>
-                              </div>
-                              <div className="text-sm flex items-center gap-2">
-                                <span className="text-muted-foreground">Role:</span>
-                                <Badge variant={member.role === "Leader" ? "fire" : "outline"}>
-                                  {member.role}
-                                </Badge>
-                              </div>
-                            </div>
-                          </HoverCardContent>
-                        </HoverCard>
-                      ))}
-                      
-                      {request.spotsFilled < request.spotsTotal && Array.from({ length: request.spotsTotal - request.spotsFilled }).map((_, index) => (
-                        <div key={`empty-${index}`} className="h-8 w-8 rounded-full bg-muted/30 flex items-center justify-center text-muted-foreground border-2 border-dashed border-muted">
-                          <span className="text-xs">+</span>
-                        </div>
-                      ))}
+                  <div>
+                    <h4 className="text-sm font-medium mb-2">Region</h4>
+                    <div className="flex gap-2 flex-wrap">
+                      <Badge 
+                        variant={filters.region === "all" ? "neon" : "outline"}
+                        className="cursor-pointer"
+                        onClick={() => setFilter("region", "all")}
+                      >
+                        All
+                      </Badge>
+                      <Badge 
+                        variant={filters.region === "Global" ? "neon" : "outline"}
+                        className="cursor-pointer"
+                        onClick={() => setFilter("region", "Global")}
+                      >
+                        Global
+                      </Badge>
+                      <Badge 
+                        variant={filters.region === "Asia" ? "neon" : "outline"}
+                        className="cursor-pointer"
+                        onClick={() => setFilter("region", "Asia")}
+                      >
+                        Asia
+                      </Badge>
+                      <Badge 
+                        variant={filters.region === "Europe" ? "neon" : "outline"}
+                        className="cursor-pointer"
+                        onClick={() => setFilter("region", "Europe")}
+                      >
+                        Europe
+                      </Badge>
+                      <Badge 
+                        variant={filters.region === "North America" ? "neon" : "outline"}
+                        className="cursor-pointer"
+                        onClick={() => setFilter("region", "North America")}
+                      >
+                        North America
+                      </Badge>
+                      <Badge 
+                        variant={filters.region === "South America" ? "neon" : "outline"}
+                        className="cursor-pointer"
+                        onClick={() => setFilter("region", "South America")}
+                      >
+                        South America
+                      </Badge>
+                    </div>
+                  </div>
+                  
+                  <div>
+                    <h4 className="text-sm font-medium mb-2">Play Style</h4>
+                    <div className="flex gap-2 flex-wrap">
+                      <Badge 
+                        variant={filters.playStyle === "all" ? "neon" : "outline"}
+                        className="cursor-pointer"
+                        onClick={() => setFilter("playStyle", "all")}
+                      >
+                        All
+                      </Badge>
+                      <Badge 
+                        variant={filters.playStyle === "Aggressive" ? "neon" : "outline"}
+                        className="cursor-pointer"
+                        onClick={() => setFilter("playStyle", "Aggressive")}
+                      >
+                        Aggressive
+                      </Badge>
+                      <Badge 
+                        variant={filters.playStyle === "Balanced" ? "neon" : "outline"}
+                        className="cursor-pointer"
+                        onClick={() => setFilter("playStyle", "Balanced")}
+                      >
+                        Balanced
+                      </Badge>
+                      <Badge 
+                        variant={filters.playStyle === "Defensive" ? "neon" : "outline"}
+                        className="cursor-pointer"
+                        onClick={() => setFilter("playStyle", "Defensive")}
+                      >
+                        Defensive
+                      </Badge>
+                      <Badge 
+                        variant={filters.playStyle === "Rusher" ? "neon" : "outline"}
+                        className="cursor-pointer"
+                        onClick={() => setFilter("playStyle", "Rusher")}
+                      >
+                        Rusher
+                      </Badge>
+                      <Badge 
+                        variant={filters.playStyle === "Sniper" ? "neon" : "outline"}
+                        className="cursor-pointer"
+                        onClick={() => setFilter("playStyle", "Sniper")}
+                      >
+                        Sniper
+                      </Badge>
+                    </div>
+                  </div>
+                  
+                  <div>
+                    <h4 className="text-sm font-medium mb-2">Squad Type</h4>
+                    <div className="flex gap-2 flex-wrap">
+                      <Badge 
+                        variant={filters.squadType === "all" ? "neon" : "outline"}
+                        className="cursor-pointer"
+                        onClick={() => setFilter("squadType", "all")}
+                      >
+                        All
+                      </Badge>
+                      <Badge 
+                        variant={filters.squadType === "Solo" ? "neon" : "outline"}
+                        className="cursor-pointer"
+                        onClick={() => setFilter("squadType", "Solo")}
+                      >
+                        Solo
+                      </Badge>
+                      <Badge 
+                        variant={filters.squadType === "Duo" ? "neon" : "outline"}
+                        className="cursor-pointer"
+                        onClick={() => setFilter("squadType", "Duo")}
+                      >
+                        Duo
+                      </Badge>
+                      <Badge 
+                        variant={filters.squadType === "Squad" ? "neon" : "outline"}
+                        className="cursor-pointer"
+                        onClick={() => setFilter("squadType", "Squad")}
+                      >
+                        Squad
+                      </Badge>
+                    </div>
+                  </div>
+                  
+                  <div>
+                    <h4 className="text-sm font-medium mb-2">Skill Level</h4>
+                    <div className="flex gap-2 flex-wrap">
+                      <Badge 
+                        variant={filters.skillLevel === "all" ? "neon" : "outline"}
+                        className="cursor-pointer"
+                        onClick={() => setFilter("skillLevel", "all")}
+                      >
+                        All
+                      </Badge>
+                      <Badge 
+                        variant={filters.skillLevel === "Beginner" ? "neon" : "outline"}
+                        className="cursor-pointer"
+                        onClick={() => setFilter("skillLevel", "Beginner")}
+                      >
+                        Beginner
+                      </Badge>
+                      <Badge 
+                        variant={filters.skillLevel === "Intermediate" ? "neon" : "outline"}
+                        className="cursor-pointer"
+                        onClick={() => setFilter("skillLevel", "Intermediate")}
+                      >
+                        Intermediate
+                      </Badge>
+                      <Badge 
+                        variant={filters.skillLevel === "Advanced" ? "neon" : "outline"}
+                        className="cursor-pointer"
+                        onClick={() => setFilter("skillLevel", "Advanced")}
+                      >
+                        Advanced
+                      </Badge>
+                      <Badge 
+                        variant={filters.skillLevel === "Pro" ? "neon" : "outline"}
+                        className="cursor-pointer"
+                        onClick={() => setFilter("skillLevel", "Pro")}
+                      >
+                        Pro
+                      </Badge>
                     </div>
                   </div>
                 </div>
-                
-                <div className="mt-auto">
-                  <Dialog open={isJoinDialogOpen && selectedRequest?.id === request.id} onOpenChange={(open) => {
-                    setIsJoinDialogOpen(open);
-                    if (open) setSelectedRequest(request);
-                  }}>
-                    <DialogTrigger asChild>
-                      <Button 
-                        variant="neon"
-                        className="w-full"
-                        disabled={request.spotsFilled >= request.spotsTotal}
-                        onClick={() => setSelectedRequest(request)}
-                      >
-                        <UserPlus className="mr-2 h-4 w-4" />
-                        {request.spotsFilled >= request.spotsTotal ? "Squad Full" : "Join Squad"}
-                      </Button>
-                    </DialogTrigger>
-                    <DialogContent>
-                      <DialogHeader>
-                        <DialogTitle>Join {request.playerName}'s Squad</DialogTitle>
-                        <DialogDescription>
-                          You're about to join this {request.squadType.toLowerCase()}. The squad leader will be notified.
-                        </DialogDescription>
-                      </DialogHeader>
-                      
-                      <div className="space-y-4 py-4">
-                        <div className="glass-effect p-4 rounded-lg">
-                          <h4 className="font-medium mb-2">Squad Details</h4>
-                          <div className="grid grid-cols-2 gap-y-2 text-sm">
-                            <div className="flex items-center gap-2">
-                              <Gamepad className="h-4 w-4 text-booyah-neon-blue" />
-                              <span className="text-muted-foreground">Game Mode:</span>
-                              <span>{request.gameMode}</span>
-                            </div>
-                            <div className="flex items-center gap-2">
-                              <Trophy className="h-4 w-4 text-booyah-neon-blue" />
-                              <span className="text-muted-foreground">Skill Level:</span>
-                              <span>{request.skillLevel}</span>
-                            </div>
-                            <div className="flex items-center gap-2 col-span-2">
-                              <MessageSquare className="h-4 w-4 text-booyah-neon-blue" />
-                              <span className="text-muted-foreground">Description:</span>
-                              <span>{request.description}</span>
-                            </div>
-                          </div>
+              </div>
+            )}
+            
+            {filteredRequests.length > 0 ? (
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                {filteredRequests.map((request) => (
+                  <div key={request.id} className="neon-card p-4 flex flex-col">
+                    <div className="flex justify-between items-start mb-4">
+                      <div>
+                        <h3 className="font-bold">{request.playerName}'s Squad</h3>
+                        <div className="flex items-center text-xs text-muted-foreground">
+                          <Clock className="h-3 w-3 mr-1" />
+                          {new Date(request.createdAt).toLocaleDateString()}
                         </div>
-                        
-                        <div>
-                          <h4 className="font-medium mb-2">Current Members</h4>
-                          <div className="space-y-2">
-                            {request.members.map(member => (
-                              <div key={member.id} className="flex items-center justify-between p-2 bg-card/50 rounded-lg">
-                                <div className="flex items-center gap-2">
-                                  <div className="h-8 w-8 rounded-full bg-booyah-purple/50 flex items-center justify-center text-xs font-bold">
-                                    {member.name.charAt(0)}
-                                  </div>
-                                  <div>
-                                    <div className="font-medium">{member.name}</div>
-                                    <div className="text-xs text-muted-foreground">Level {member.level}</div>
-                                  </div>
-                                </div>
-                                <Badge variant={member.role === "Leader" ? "fire" : "outline"}>
-                                  {member.role}
-                                </Badge>
-                              </div>
-                            ))}
-                          </div>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <Badge variant="outline">{request.squadType}</Badge>
+                        <Badge variant={request.gameMode === "Battle Royale" ? "fire" : "neon"}>
+                          {request.gameMode === "Battle Royale" ? "BR" : "CS"}
+                        </Badge>
+                      </div>
+                    </div>
+                    
+                    <div className="grid grid-cols-2 gap-2 text-sm mb-4">
+                      <div className="flex items-center gap-2">
+                        <MapPin className="h-4 w-4 text-booyah-neon-blue" />
+                        <span>{request.region}</span>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <Flame className="h-4 w-4 text-booyah-fire" />
+                        <span>{request.playStyle}</span>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <Gamepad2 className="h-4 w-4 text-booyah-neon-blue" />
+                        <span>{request.gameMode}</span>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <Shield className="h-4 w-4 text-booyah-neon-blue" />
+                        <span>{request.skillLevel}</span>
+                      </div>
+                    </div>
+                    
+                    <p className="text-sm mb-4 line-clamp-2">{request.description}</p>
+                    
+                    <div className="mt-auto">
+                      <div className="flex items-center justify-between gap-4 mb-4">
+                        <div className="flex items-center gap-2">
+                          <Users className="h-4 w-4 text-booyah-neon-blue" />
+                          <span className="text-sm">
+                            {request.spotsFilled}/{request.gameMode === "Clash Squad" 
+                              ? getClashSquadSpots(request.squadType) 
+                              : getMaxSpots(request.squadType)}
+                          </span>
+                        </div>
+                        <div className="flex -space-x-2">
+                          {request.members.map((member, index) => (
+                            <div 
+                              key={member.id} 
+                              className="w-8 h-8 rounded-full bg-booyah-purple-dark/60 border-2 border-booyah-purple-dark flex items-center justify-center text-xs"
+                              title={member.name}
+                            >
+                              {member.avatar ? (
+                                <img src={member.avatar} alt={member.name} className="w-full h-full rounded-full object-cover" />
+                              ) : (
+                                member.name.charAt(0)
+                              )}
+                            </div>
+                          ))}
                         </div>
                       </div>
                       
-                      <DialogFooter>
-                        <Button variant="outline" className="gap-2" asChild>
-                          <DialogClose>
-                            <X className="h-4 w-4" />
-                            Cancel
-                          </DialogClose>
-                        </Button>
-                        <Button variant="fire" className="gap-2" onClick={() => handleJoinSquad(request)}>
-                          <Check className="h-4 w-4" />
-                          Confirm Join
-                        </Button>
-                      </DialogFooter>
-                    </DialogContent>
-                  </Dialog>
-                </div>
-              </div>
-            ))}
-          </div>
-          
-          {filteredSquadRequests.length === 0 && (
-            <div className="text-center py-12">
-              <div className="inline-flex h-20 w-20 rounded-full bg-muted/30 items-center justify-center mb-4">
-                <Users className="h-10 w-10 text-muted-foreground" />
-              </div>
-              <h3 className="text-xl font-bold mb-2">No Squad Requests Found</h3>
-              <p className="text-muted-foreground max-w-md mx-auto mb-6">
-                No squads match your current filters or there are no active squad requests.
-              </p>
-              <Button variant="fire" onClick={() => setIsCreateDialogOpen(true)}>
-                Create Your Own Squad
-              </Button>
-            </div>
-          )}
-        </div>
-
-        {/* Players Tab Content */}
-        <div className={`${currentTab === "players" ? "block" : "hidden"}`}>
-          <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-            {filteredPlayers.map(player => (
-              <div key={player.id} className="neon-card p-6 flex flex-col">
-                <div className="mb-4">
-                  <div className="flex justify-between items-start mb-4">
-                    <h3 className="text-xl font-bold">{player.name}</h3>
-                    <Badge variant={player.isOnline ? "fire" : "outline"}>
-                      {player.isOnline ? "Online" : "Offline"}
-                    </Badge>
-                  </div>
-                  
-                  <div className="grid grid-cols-2 gap-y-2 gap-x-4 mb-4 text-sm">
-                    <div className="flex items-center gap-2">
-                      <Trophy className="h-4 w-4 text-booyah-neon-blue" />
-                      <span className="text-muted-foreground">Level:</span>
-                      <span>{player.level}</span>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <Gamepad className="h-4 w-4 text-booyah-neon-blue" />
-                      <span className="text-muted-foreground">Mode:</span>
-                      <span>{player.gameMode}</span>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <Users className="h-4 w-4 text-booyah-neon-blue" />
-                      <span className="text-muted-foreground">Games:</span>
-                      <span>{player.gamesPlayed}</span>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <Check className="h-4 w-4 text-booyah-fire" />
-                      <span className="text-muted-foreground">Win Rate:</span>
-                      <span>{player.winRate}</span>
-                    </div>
-                  </div>
-                  
-                  <div className="flex flex-wrap gap-2 mb-4">
-                    <Badge variant="outline">{player.region}</Badge>
-                    <Badge variant="outline">{player.skillLevel}</Badge>
-                    <Badge variant="outline">{player.playStyle}</Badge>
-                  </div>
-                  
-                  <div className="text-xs text-muted-foreground">
-                    Last active: {player.lastActive}
-                  </div>
-                </div>
-                
-                <div className="mt-auto">
-                  <Dialog>
-                    <DialogTrigger asChild>
                       <Button 
-                        variant="neon"
+                        variant="neon" 
                         className="w-full"
-                        onClick={() => handleViewProfile(player)}
+                        disabled={request.spotsFilled >= (request.gameMode === "Clash Squad" 
+                          ? getClashSquadSpots(request.squadType) 
+                          : getMaxSpots(request.squadType))}
+                        onClick={() => handleJoinSquad(request.id)}
                       >
-                        View Profile
+                        {request.spotsFilled >= (request.gameMode === "Clash Squad" 
+                          ? getClashSquadSpots(request.squadType) 
+                          : getMaxSpots(request.squadType))
+                          ? "Full" 
+                          : "Join Squad"}
                       </Button>
-                    </DialogTrigger>
-                    <DialogContent>
-                      <DialogHeader>
-                        <DialogTitle>{player.name}'s Profile</DialogTitle>
-                        <DialogDescription>
-                          Player stats and information
-                        </DialogDescription>
-                      </DialogHeader>
-                      
-                      <div className="space-y-4 py-4">
-                        <div className="flex items-center gap-4">
-                          <div className="h-16 w-16 rounded-full bg-booyah-purple/50 flex items-center justify-center text-xl font-bold">
-                            {player.name.charAt(0)}
-                          </div>
-                          <div>
-                            <h3 className="text-xl font-bold flex items-center gap-2">
-                              {player.name}
-                              <Badge variant={player.isOnline ? "fire" : "outline"}>
-                                {player.isOnline ? "Online" : "Offline"}
-                              </Badge>
-                            </h3>
-                            <p className="text-sm text-muted-foreground">
-                              Last active: {player.lastActive}
-                            </p>
-                          </div>
-                        </div>
-                        
-                        <div className="grid grid-cols-2 gap-4">
-                          <div className="glass-effect p-4 rounded-lg">
-                            <h4 className="font-medium mb-2">Player Stats</h4>
-                            <div className="space-y-2 text-sm">
-                              <div className="flex justify-between">
-                                <span className="text-muted-foreground">Level:</span>
-                                <span>{player.level}</span>
-                              </div>
-                              <div className="flex justify-between">
-                                <span className="text-muted-foreground">Games Played:</span>
-                                <span>{player.gamesPlayed}</span>
-                              </div>
-                              <div className="flex justify-between">
-                                <span className="text-muted-foreground">Win Rate:</span>
-                                <span>{player.winRate}</span>
-                              </div>
-                            </div>
-                          </div>
-                          
-                          <div className="glass-effect p-4 rounded-lg">
-                            <h4 className="font-medium mb-2">Play Style</h4>
-                            <div className="space-y-2 text-sm">
-                              <div className="flex justify-between">
-                                <span className="text-muted-foreground">Favorite Mode:</span>
-                                <span>{player.gameMode}</span>
-                              </div>
-                              <div className="flex justify-between">
-                                <span className="text-muted-foreground">Skill Level:</span>
-                                <span>{player.skillLevel}</span>
-                              </div>
-                              <div className="flex justify-between">
-                                <span className="text-muted-foreground">Play Style:</span>
-                                <span>{player.playStyle}</span>
-                              </div>
-                            </div>
-                          </div>
-                        </div>
-                        
-                        <div className="space-y-2">
-                          <Button variant="fire" className="w-full gap-2">
-                            <MessageSquare className="h-4 w-4" />
-                            Send Message
-                          </Button>
-                          <Button variant="outline" className="w-full gap-2">
-                            <UserPlus className="h-4 w-4" />
-                            Add Friend
-                          </Button>
-                        </div>
-                      </div>
-                    </DialogContent>
-                  </Dialog>
-                </div>
+                    </div>
+                  </div>
+                ))}
               </div>
-            ))}
+            ) : (
+              <div className="text-center py-12 glass-effect p-6 rounded-lg">
+                <h3 className="text-xl font-bold mb-2">No Squad Requests Found</h3>
+                <p className="text-muted-foreground mb-4">
+                  No squad requests match your current filters. Try adjusting your filters or create a new squad request.
+                </p>
+                <Button 
+                  variant="fire" 
+                  onClick={() => setIsCreatingRequest(true)}
+                  className="flex items-center gap-2"
+                >
+                  <Plus className="h-4 w-4" />
+                  Create Squad Request
+                </Button>
+              </div>
+            )}
           </div>
           
-          {filteredPlayers.length === 0 && (
-            <div className="text-center py-12">
-              <div className="inline-flex h-20 w-20 rounded-full bg-muted/30 items-center justify-center mb-4">
-                <Search className="h-10 w-10 text-muted-foreground" />
+          <div className="md:w-[300px] space-y-6">
+            <div className="neon-card p-4">
+              <h3 className="font-bold mb-4 flex items-center gap-2">
+                <Search className="h-4 w-4" />
+                Quick Find
+              </h3>
+              <div className="space-y-2">
+                <Button 
+                  variant="outline" 
+                  size="sm" 
+                  className="w-full justify-start"
+                  onClick={() => {
+                    setFilters({
+                      ...filters,
+                      gameMode: "Battle Royale",
+                      squadType: "Squad"
+                    });
+                  }}
+                >
+                  Battle Royale Squads
+                </Button>
+                <Button 
+                  variant="outline" 
+                  size="sm" 
+                  className="w-full justify-start"
+                  onClick={() => {
+                    setFilters({
+                      ...filters,
+                      gameMode: "Clash Squad",
+                      squadType: "Squad"
+                    });
+                  }}
+                >
+                  Clash Squad Teams
+                </Button>
+                <Button 
+                  variant="outline" 
+                  size="sm" 
+                  className="w-full justify-start"
+                  onClick={() => {
+                    setFilters({
+                      ...filters,
+                      squadType: "Duo"
+                    });
+                  }}
+                >
+                  Duo Partners
+                </Button>
+                <Button 
+                  variant="outline" 
+                  size="sm" 
+                  className="w-full justify-start"
+                  onClick={() => {
+                    setFilters({
+                      ...filters,
+                      region: "Global"
+                    });
+                  }}
+                >
+                  Global Players
+                </Button>
               </div>
-              <h3 className="text-xl font-bold mb-2">No Players Found</h3>
-              <p className="text-muted-foreground max-w-md mx-auto mb-6">
-                No players match your current filter criteria. Try adjusting your filters.
-              </p>
-              <Button variant="outline" onClick={() => setFilters({
-                gameMode: "all",
-                region: "all",
-                skillLevel: "all",
-                playStyle: "all",
-                squadType: "all"
-              })}>
-                Clear All Filters
-              </Button>
             </div>
-          )}
+            
+            <div className="glass-effect p-4 rounded-lg">
+              <h3 className="font-bold mb-2">Squad Finder Tips</h3>
+              <ul className="text-sm space-y-2">
+                <li className="flex items-start gap-2">
+                  <span className="text-booyah-neon-blue">•</span>
+                  <span>Be specific about your playstyle and expectations in your description.</span>
+                </li>
+                <li className="flex items-start gap-2">
+                  <span className="text-booyah-neon-blue">•</span>
+                  <span>Mention your rank and preferred game mode for better matching.</span>
+                </li>
+                <li className="flex items-start gap-2">
+                  <span className="text-booyah-neon-blue">•</span>
+                  <span>Respond quickly to join requests to build your squad faster.</span>
+                </li>
+                <li className="flex items-start gap-2">
+                  <span className="text-booyah-neon-blue">•</span>
+                  <span>Consider players from different regions if you play during varied hours.</span>
+                </li>
+              </ul>
+            </div>
+          </div>
         </div>
       </div>
+
+      {/* Create Squad Request Dialog */}
+      <Dialog open={isCreatingRequest} onOpenChange={setIsCreatingRequest}>
+        <DialogContent className="sm:max-w-[500px]">
+          <DialogHeader>
+            <DialogTitle>Create Squad Request</DialogTitle>
+            <DialogDescription>
+              Fill in the details below to create a squad request. Other players will be able to see your request and join your squad.
+            </DialogDescription>
+          </DialogHeader>
+          
+          <Form {...form}>
+            <form onSubmit={form.handleSubmit(handleCreateSquadRequest)} className="space-y-4">
+              <div className="grid grid-cols-2 gap-4">
+                <FormField
+                  control={form.control}
+                  name="gameMode"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Game Mode</FormLabel>
+                      <Select 
+                        onValueChange={field.onChange} 
+                        defaultValue={field.value}
+                      >
+                        <FormControl>
+                          <SelectTrigger>
+                            <SelectValue placeholder="Select game mode" />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                          <SelectItem value="Battle Royale">Battle Royale</SelectItem>
+                          <SelectItem value="Clash Squad">Clash Squad</SelectItem>
+                        </SelectContent>
+                      </Select>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                
+                <FormField
+                  control={form.control}
+                  name="region"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Region</FormLabel>
+                      <Select 
+                        onValueChange={field.onChange} 
+                        defaultValue={field.value}
+                      >
+                        <FormControl>
+                          <SelectTrigger>
+                            <SelectValue placeholder="Select region" />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                          <SelectItem value="Global">Global</SelectItem>
+                          <SelectItem value="Asia">Asia</SelectItem>
+                          <SelectItem value="Europe">Europe</SelectItem>
+                          <SelectItem value="North America">North America</SelectItem>
+                          <SelectItem value="South America">South America</SelectItem>
+                        </SelectContent>
+                      </Select>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
+              
+              <div className="grid grid-cols-2 gap-4">
+                <FormField
+                  control={form.control}
+                  name="playStyle"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Play Style</FormLabel>
+                      <Select 
+                        onValueChange={field.onChange} 
+                        defaultValue={field.value}
+                      >
+                        <FormControl>
+                          <SelectTrigger>
+                            <SelectValue placeholder="Select play style" />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                          <SelectItem value="Aggressive">Aggressive</SelectItem>
+                          <SelectItem value="Balanced">Balanced</SelectItem>
+                          <SelectItem value="Defensive">Defensive</SelectItem>
+                          <SelectItem value="Rusher">Rusher</SelectItem>
+                          <SelectItem value="Sniper">Sniper</SelectItem>
+                        </SelectContent>
+                      </Select>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                
+                <FormField
+                  control={form.control}
+                  name="squadType"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Squad Type</FormLabel>
+                      <Select 
+                        onValueChange={field.onChange} 
+                        defaultValue={field.value}
+                      >
+                        <FormControl>
+                          <SelectTrigger>
+                            <SelectValue placeholder="Select squad type" />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                          <SelectItem value="Solo">Solo (Looking to join)</SelectItem>
+                          <SelectItem value="Duo">Duo (2 players)</SelectItem>
+                          <SelectItem value="Squad">Squad (4 players)</SelectItem>
+                        </SelectContent>
+                      </Select>
+                      <FormDescription>
+                        {field.value === "Solo" 
+                          ? "You're looking to join someone else's team" 
+                          : `Creating a ${field.value.toLowerCase()} with ${field.value === "Duo" ? "2" : "4"} spots`}
+                      </FormDescription>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
+              
+              <FormField
+                control={form.control}
+                name="skillLevel"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Skill Level</FormLabel>
+                    <Select 
+                      onValueChange={field.onChange} 
+                      defaultValue={field.value}
+                    >
+                      <FormControl>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Select skill level" />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        <SelectItem value="Beginner">Beginner</SelectItem>
+                        <SelectItem value="Intermediate">Intermediate</SelectItem>
+                        <SelectItem value="Advanced">Advanced</SelectItem>
+                        <SelectItem value="Pro">Pro</SelectItem>
+                      </SelectContent>
+                    </Select>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              
+              <FormField
+                control={form.control}
+                name="description"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Description</FormLabel>
+                    <FormControl>
+                      <Textarea 
+                        placeholder="Describe what kind of players you're looking for, your play schedule, etc."
+                        className="resize-none"
+                        {...field}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              
+              <DialogFooter>
+                <Button type="submit" variant="fire">Create Squad Request</Button>
+              </DialogFooter>
+            </form>
+          </Form>
+        </DialogContent>
+      </Dialog>
+      
+      {/* Join Squad Confirmation Dialog */}
+      <Dialog open={showJoinDialog} onOpenChange={setShowJoinDialog}>
+        <DialogContent className="sm:max-w-[400px]">
+          <DialogHeader>
+            <DialogTitle>Join Squad</DialogTitle>
+            <DialogDescription>
+              {selectedRequest 
+                ? `You are about to join ${selectedRequest.playerName}'s ${selectedRequest.squadType === "Squad" ? "squad" : "duo"}.` 
+                : "Join this squad?"}
+            </DialogDescription>
+          </DialogHeader>
+          
+          {selectedRequest && (
+            <div className="space-y-4 py-4">
+              <div className="flex items-center justify-between">
+                <span className="font-medium">Game Mode:</span>
+                <Badge variant={selectedRequest.gameMode === "Battle Royale" ? "fire" : "neon"}>
+                  {selectedRequest.gameMode}
+                </Badge>
+              </div>
+              
+              <div className="flex items-center justify-between">
+                <span className="font-medium">Region:</span>
+                <span>{selectedRequest.region}</span>
+              </div>
+              
+              <div className="flex items-center justify-between">
+                <span className="font-medium">Play Style:</span>
+                <span>{selectedRequest.playStyle}</span>
+              </div>
+              
+              <div className="flex items-center justify-between">
+                <span className="font-medium">Skill Level:</span>
+                <span>{selectedRequest.skillLevel}</span>
+              </div>
+              
+              <div className="flex items-center justify-between">
+                <span className="font-medium">Members:</span>
+                <span>{selectedRequest.spotsFilled}/{selectedRequest.gameMode === "Clash Squad" 
+                  ? getClashSquadSpots(selectedRequest.squadType) 
+                  : getMaxSpots(selectedRequest.squadType)}</span>
+              </div>
+            </div>
+          )}
+          
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setShowJoinDialog(false)}>Cancel</Button>
+            <Button variant="fire" onClick={confirmJoinSquad}>Join Now</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </section>
   );
 }

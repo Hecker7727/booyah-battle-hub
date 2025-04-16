@@ -1,16 +1,24 @@
 
-import { useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { useState, useEffect } from "react";
+import { Link, useNavigate, useLocation } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Menu, X, User, Search, Bell } from "lucide-react";
+import { Menu, X, User, Search, Bell, BookOpen, Shield } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 
 export function Navbar() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [isAdmin, setIsAdmin] = useState(false);
   const { toast } = useToast();
   const navigate = useNavigate();
+  const location = useLocation();
+
+  useEffect(() => {
+    // Check if user is admin
+    const adminStatus = sessionStorage.getItem("isAdmin") === "true";
+    setIsAdmin(adminStatus);
+  }, [location.pathname]);
 
   const toggleMenu = () => setIsMenuOpen(!isMenuOpen);
 
@@ -20,6 +28,7 @@ export function Navbar() {
 
   const handleLogout = () => {
     setIsLoggedIn(false);
+    sessionStorage.removeItem("isAdmin");
     toast({
       title: "Logged out",
       description: "You have been successfully logged out.",
@@ -46,6 +55,9 @@ export function Navbar() {
             <Link to="/tournaments" className="text-sm font-medium hover:text-booyah-neon-blue transition-colors">
               Tournaments
             </Link>
+            <Link to="/guides" className="text-sm font-medium hover:text-booyah-neon-blue transition-colors">
+              Guides
+            </Link>
             <Link to="/news" className="text-sm font-medium hover:text-booyah-neon-blue transition-colors">
               News & Tips
             </Link>
@@ -63,6 +75,16 @@ export function Navbar() {
             <Bell className="h-4 w-4" />
             <Badge variant="fire" className="absolute -top-1 -right-1 w-4 h-4 flex items-center justify-center p-0">3</Badge>
           </Button>
+          
+          {isAdmin && (
+            <Link to="/admin">
+              <Button variant="outline" size="sm" className="flex items-center gap-2">
+                <Shield className="h-4 w-4 text-booyah-fire" />
+                Admin
+              </Button>
+            </Link>
+          )}
+          
           {isLoggedIn ? (
             <div className="hidden md:flex items-center gap-4">
               <Button variant="ghost" size="icon" className="relative" aria-label="User Profile">
@@ -97,12 +119,23 @@ export function Navbar() {
             <Link to="/tournaments" className="text-sm font-medium hover:text-booyah-neon-blue transition-colors p-2">
               Tournaments
             </Link>
+            <Link to="/guides" className="text-sm font-medium hover:text-booyah-neon-blue transition-colors p-2">
+              Guides
+            </Link>
             <Link to="/news" className="text-sm font-medium hover:text-booyah-neon-blue transition-colors p-2">
               News & Tips
             </Link>
             <Link to="/forums" className="text-sm font-medium hover:text-booyah-neon-blue transition-colors p-2">
               Forums
             </Link>
+            
+            {isAdmin && (
+              <Link to="/admin" className="text-sm font-medium hover:text-booyah-neon-blue transition-colors p-2 flex items-center gap-2">
+                <Shield className="h-4 w-4 text-booyah-fire" />
+                Admin Panel
+              </Link>
+            )}
+            
             {isLoggedIn ? (
               <div className="flex gap-4">
                 <Button variant="ghost" size="sm" className="flex items-center gap-2">
