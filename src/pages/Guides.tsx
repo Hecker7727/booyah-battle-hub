@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { Layout } from "@/components/Layout";
 import { Button } from "@/components/ui/button";
@@ -113,6 +114,13 @@ export default function Guides() {
 
   const filteredResources = resources.filter(resource => resource.type === activeTab);
 
+  const handleReadMore = (resourceId: string) => {
+    // In a real app, this would navigate to a detailed view of the resource
+    console.log(`Navigating to resource: ${resourceId}`);
+    // For now, we'll just show a notification
+    alert(`Viewing resource: ${resourceId}`);
+  };
+
   return (
     <Layout>
       <section className="py-16 min-h-screen">
@@ -127,11 +135,17 @@ export default function Guides() {
             
             {isAdmin ? (
               <AdminAuth>
-                <ResourcesManager />
+                <ResourcesManager 
+                  resources={resources}
+                  setResources={setResources}
+                />
               </AdminAuth>
             ) : (
               <AdminAuth>
-                <ResourcesManager />
+                <ResourcesManager 
+                  resources={resources}
+                  setResources={setResources}
+                />
               </AdminAuth>
             )}
           </div>
@@ -195,7 +209,11 @@ export default function Guides() {
                       </CardHeader>
                       <CardContent>
                         <p className="line-clamp-3 mb-4">{resource.content}</p>
-                        <Button variant="outline" className="w-full flex items-center justify-center gap-2">
+                        <Button 
+                          variant="outline" 
+                          className="w-full flex items-center justify-center gap-2"
+                          onClick={() => handleReadMore(resource.id)}
+                        >
                           Read more
                           <ChevronRight className="h-4 w-4" />
                         </Button>

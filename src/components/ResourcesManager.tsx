@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -68,27 +69,6 @@ export interface Resource {
   updatedAt: string;
 }
 
-// Initial sample resources
-const INITIAL_RESOURCES: Resource[] = [
-  {
-    id: "1",
-    type: "beginner-guide",
-    title: "Free Fire Basics",
-    content: "This guide will help new players understand the basic mechanics of Free Fire...",
-    createdAt: new Date().toISOString(),
-    updatedAt: new Date().toISOString(),
-  },
-  {
-    id: "2",
-    type: "character-guide",
-    title: "Alok Character Guide",
-    content: "Alok is one of the most versatile characters in Free Fire...",
-    imageUrl: "https://images.unsplash.com/photo-1535223289827-42f1e9919769",
-    createdAt: new Date().toISOString(),
-    updatedAt: new Date().toISOString(),
-  },
-];
-
 const resourceSchema = z.object({
   title: z.string().min(3, { message: "Title must be at least 3 characters." }),
   content: z.string().min(10, { message: "Content must be at least 10 characters." }),
@@ -100,8 +80,12 @@ const resourceSchema = z.object({
 
 type ResourceFormValues = z.infer<typeof resourceSchema>;
 
-export function ResourcesManager() {
-  const [resources, setResources] = useState<Resource[]>(INITIAL_RESOURCES);
+interface ResourcesManagerProps {
+  resources: Resource[];
+  setResources: React.Dispatch<React.SetStateAction<Resource[]>>;
+}
+
+export function ResourcesManager({ resources, setResources }: ResourcesManagerProps) {
   const [activeTab, setActiveTab] = useState<ResourceType>("beginner-guide");
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
   const [editingResource, setEditingResource] = useState<Resource | null>(null);
@@ -244,11 +228,11 @@ export function ResourcesManager() {
             <span className="hidden md:inline">Map Strategies</span>
           </TabsTrigger>
           <TabsTrigger value="rank-tip" className="flex items-center gap-2">
-            <Trophy className="h-5 w-5" />
+            <Trophy className="h-4 w-4" />
             <span className="hidden md:inline">Rank Tips</span>
           </TabsTrigger>
           <TabsTrigger value="patch-note" className="flex items-center gap-2">
-            <FileText className="h-5 w-5" />
+            <FileText className="h-4 w-4" />
             <span className="hidden md:inline">Patch Notes</span>
           </TabsTrigger>
         </TabsList>

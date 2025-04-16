@@ -15,7 +15,7 @@ import { useToast } from "@/hooks/use-toast";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
-import { Upload, Link, X } from "lucide-react";
+import { Upload, Link, X, Tag } from "lucide-react";
 
 const clipSchema = z.object({
   title: z.string().min(3, { message: "Title must be at least 3 characters." }),
@@ -32,6 +32,7 @@ const clipSchema = z.object({
     { message: "URL must be from YouTube, Twitch, Facebook, or Vimeo." }
   ),
   tags: z.string().optional(),
+  gameMode: z.string().min(1, { message: "Please select a game mode." }),
 });
 
 type ClipFormValues = z.infer<typeof clipSchema>;
@@ -47,10 +48,23 @@ export function ClipUploadForm({ onSuccess }: { onSuccess?: () => void }) {
       description: "",
       videoUrl: "",
       tags: "",
+      gameMode: "battle-royale",
     },
   });
 
   const onSubmit = async (values: ClipFormValues) => {
+    // First check if user is logged in
+    const isLoggedIn = sessionStorage.getItem("isLoggedIn") === "true";
+    
+    if (!isLoggedIn) {
+      toast({
+        title: "Login Required",
+        description: "You need to log in to upload clips.",
+        variant: "destructive",
+      });
+      return;
+    }
+    
     setIsSubmitting(true);
     
     // Simulate API call with timeout
@@ -111,6 +125,29 @@ export function ClipUploadForm({ onSuccess }: { onSuccess?: () => void }) {
           
           <FormField
             control={form.control}
+            name="gameMode"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Game Mode</FormLabel>
+                <FormControl>
+                  <select 
+                    className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                    {...field}
+                  >
+                    <option value="battle-royale">Battle Royale</option>
+                    <option value="clash-squad">Clash Squad</option>
+                    <option value="lone-wolf">Lone Wolf</option>
+                    <option value="custom-room">Custom Room</option>
+                    <option value="other">Other</option>
+                  </select>
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+          
+          <FormField
+            control={form.control}
             name="videoUrl"
             render={({ field }) => (
               <FormItem>
@@ -151,9 +188,16 @@ export function ClipUploadForm({ onSuccess }: { onSuccess?: () => void }) {
             render={({ field }) => (
               <FormItem>
                 <FormLabel>Tags (Optional)</FormLabel>
-                <FormControl>
-                  <Input placeholder="squad, headshot, booyah, ranked (comma separated)" {...field} />
-                </FormControl>
+                <div className="relative">
+                  <FormControl>
+                    <Input 
+                      placeholder="squad, headshot, booyah, ranked (comma separated)" 
+                      {...field}
+                      className="pl-10" 
+                    />
+                  </FormControl>
+                  <Tag className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                </div>
                 <FormMessage />
               </FormItem>
             )}

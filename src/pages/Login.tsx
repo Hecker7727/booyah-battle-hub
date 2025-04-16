@@ -56,10 +56,12 @@ export default function Login() {
   });
 
   const onLoginSubmit = (values: LoginFormValues) => {
-    // This would normally call an API
+    // In a real app, this would call an API to authenticate
     console.log("Login form submitted:", values);
     
     // Simulate login success
+    sessionStorage.setItem("isLoggedIn", "true");
+    
     toast({
       title: "Welcome back!",
       description: "You have successfully logged in.",
@@ -69,13 +71,30 @@ export default function Login() {
   };
 
   const onRegisterSubmit = (values: RegisterFormValues) => {
-    // This would normally call an API
+    // In a real app, this would call an API to register
     console.log("Register form submitted:", values);
     
     // Simulate registration success
+    sessionStorage.setItem("isLoggedIn", "true");
+    
     toast({
       title: "Account created!",
       description: "Your account has been successfully created. Welcome to BooyahZone!",
+    });
+    
+    navigate("/");
+  };
+
+  const handleSocialLogin = (provider: string) => {
+    // This would normally integrate with a social login provider
+    console.log(`Logging in with ${provider}`);
+    
+    // Simulate successful social login
+    sessionStorage.setItem("isLoggedIn", "true");
+    
+    toast({
+      title: `${provider} Login Successful`,
+      description: `You've successfully logged in with ${provider}.`,
     });
     
     navigate("/");
@@ -168,9 +187,9 @@ export default function Login() {
                           </div>
                           <FormMessage />
                           <div className="text-right mt-1">
-                            <a href="#" className="text-xs text-booyah-neon-blue hover:underline">
+                            <Button variant="link" className="p-0 h-auto text-xs text-booyah-neon-blue">
                               Forgot Password?
-                            </a>
+                            </Button>
                           </div>
                         </FormItem>
                       )}
@@ -316,11 +335,19 @@ export default function Login() {
               </div>
               
               <div className="mt-6 grid grid-cols-2 gap-4">
-                <Button variant="outline" className="w-full">
+                <Button 
+                  variant="outline" 
+                  className="w-full"
+                  onClick={() => handleSocialLogin('Google')}
+                >
                   <img src="https://upload.wikimedia.org/wikipedia/commons/5/53/Google_%22G%22_Logo.svg" alt="Google logo" className="w-5 h-5 mr-2" />
                   Google
                 </Button>
-                <Button variant="outline" className="w-full">
+                <Button 
+                  variant="outline" 
+                  className="w-full"
+                  onClick={() => handleSocialLogin('Facebook')}
+                >
                   <img src="https://upload.wikimedia.org/wikipedia/commons/b/b8/2021_Facebook_icon.svg" alt="Facebook logo" className="w-5 h-5 mr-2" />
                   Facebook
                 </Button>
@@ -330,9 +357,9 @@ export default function Login() {
             <div className="mt-8 text-center">
               <p className="text-sm text-muted-foreground">
                 By continuing, you agree to BooyahZone's 
-                <a href="#" className="text-booyah-neon-blue hover:underline mx-1">Terms of Service</a>
+                <Button variant="link" className="text-booyah-neon-blue p-0 h-auto mx-1">Terms of Service</Button>
                 and
-                <a href="#" className="text-booyah-neon-blue hover:underline mx-1">Privacy Policy</a>
+                <Button variant="link" className="text-booyah-neon-blue p-0 h-auto mx-1">Privacy Policy</Button>
               </p>
             </div>
           </div>
