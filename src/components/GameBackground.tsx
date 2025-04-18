@@ -124,8 +124,8 @@ function BackgroundScene() {
 
 export const GameBackground: React.FC = () => {
   return (
-    <div className="game-background fixed inset-0 -z-10">
-      <Canvas shadows>
+    <div className="game-background fixed inset-0 w-full h-full" style={{ zIndex: -1 }}>
+      <Canvas>
         <BackgroundScene />
       </Canvas>
     </div>
