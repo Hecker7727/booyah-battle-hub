@@ -74,6 +74,7 @@
   body {
     @apply bg-background text-foreground font-sans antialiased;
     background-image: radial-gradient(circle at center, rgba(155, 135, 245, 0.15) 0%, rgba(0, 0, 0, 0) 70%);
+    cursor: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' fill='none' stroke='white' stroke-width='2'><circle cx='12' cy='12' r='1'/></svg>") 12 12, auto;
   }
 
   .neon-text {
@@ -116,4 +117,76 @@
   .floating {
     @apply animate-float;
   }
+  
+  /* FPS Game UI Elements */
+  .fps-container {
+    @apply relative z-10 overflow-hidden;
+    perspective: 1000px;
+  }
+  
+  .fps-card {
+    @apply bg-card/60 backdrop-blur-sm border border-booyah-purple/20
+           rounded-lg shadow-lg transition-all duration-300
+           hover:border-booyah-purple/60 hover:shadow-booyah-purple/20;
+    transform-style: preserve-3d;
+    transform: rotateX(5deg);
+  }
+  
+  .fps-header {
+    @apply font-bold text-xl md:text-2xl tracking-wider uppercase;
+    text-shadow: 0 0 10px rgba(155, 135, 245, 0.5);
+  }
+  
+  .fps-button {
+    @apply relative overflow-hidden transition-all duration-300 
+           bg-gradient-to-r from-booyah-purple to-secondary
+           text-white font-bold uppercase tracking-wider
+           border border-booyah-purple/50 shadow-[0_0_10px_rgba(155,135,245,0.3)]
+           hover:shadow-[0_0_15px_rgba(155,135,245,0.5)] hover:scale-105;
+  }
+  
+  .fps-input {
+    @apply bg-background/80 border border-booyah-purple/30
+           focus:border-booyah-purple focus:ring-1 focus:ring-booyah-purple
+           transition-all duration-300;
+  }
+  
+  .hud-element {
+    @apply fixed z-50 pointer-events-none;
+  }
+
+  .hud-top-left {
+    @apply fixed top-4 left-4 z-50 pointer-events-none;
+  }
+  
+  .hud-top-right {
+    @apply fixed top-4 right-4 z-50 pointer-events-none;
+  }
+  
+  .hud-bottom-left {
+    @apply fixed bottom-4 left-4 z-50 pointer-events-none;
+  }
+  
+  .hud-bottom-right {
+    @apply fixed bottom-4 right-4 z-50 pointer-events-none;
+  }
+  
+  .ammo-counter {
+    @apply flex items-center gap-2 bg-black/30 backdrop-blur-sm
+           px-3 py-1 rounded-md border border-booyah-purple/30;
+  }
+  
+  .health-bar {
+    @apply w-40 h-2 bg-gray-800 rounded-full overflow-hidden;
+  }
+  
+  .health-fill {
+    @apply h-full bg-gradient-to-r from-red-500 to-booyah-fire;
+  }
+  
+  .target-cursor {
+    @apply fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2
+           pointer-events-none z-50 mix-blend-screen;
+  }
 }
+
