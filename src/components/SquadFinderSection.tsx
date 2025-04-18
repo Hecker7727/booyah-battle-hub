@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -202,7 +201,7 @@ export function SquadFinderSection() {
                     </SelectTrigger>
                     <SelectContent>
                       <SelectGroup>
-                        <SelectItem value="">All Regions</SelectItem>
+                        <SelectItem value="all-regions">All Regions</SelectItem>
                         <SelectItem value="NA-East">NA-East</SelectItem>
                         <SelectItem value="NA-West">NA-West</SelectItem>
                         <SelectItem value="EU">Europe</SelectItem>
@@ -217,7 +216,7 @@ export function SquadFinderSection() {
                     </SelectTrigger>
                     <SelectContent>
                       <SelectGroup>
-                        <SelectItem value="">All Platforms</SelectItem>
+                        <SelectItem value="all-platforms">All Platforms</SelectItem>
                         <SelectItem value="PC">PC</SelectItem>
                         <SelectItem value="Mobile">Mobile</SelectItem>
                       </SelectGroup>
