@@ -1,7 +1,7 @@
 
-import { useRef, useState, useEffect } from 'react';
-import { Canvas, useFrame, useThree } from '@react-three/fiber';
-import { useGLTF, PerspectiveCamera, OrbitControls, Environment, Text3D, Float } from '@react-three/drei';
+import { useRef, useState } from 'react';
+import { Canvas, useFrame } from '@react-three/fiber';
+import { PerspectiveCamera, OrbitControls, Text3D, Float } from '@react-three/drei';
 import * as THREE from 'three';
 
 function Gun(props: any) {
@@ -81,7 +81,6 @@ function FloatingLogo() {
 }
 
 function Crosshair() {
-  const { viewport } = useThree();
   return (
     <group position={[0, 0, -1]}>
       <mesh position={[0, 0, 0]}>
@@ -126,7 +125,7 @@ function BackgroundScene() {
 export const GameBackground: React.FC = () => {
   return (
     <div className="game-background fixed inset-0 -z-10">
-      <Canvas shadows gl={{ antialias: true }}>
+      <Canvas shadows>
         <BackgroundScene />
       </Canvas>
     </div>

@@ -4,14 +4,14 @@ import { Shield, Users, Zap, Target, Crosshair, Flame } from 'lucide-react';
 
 export const FPSHudElements: React.FC = () => {
   return (
-    <>
+    <div className="game-hud">
       {/* Crosshair */}
-      <div className="target-cursor w-8 h-8">
+      <div className="target-cursor absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-8 h-8 pointer-events-none z-50">
         <Crosshair className="w-full h-full text-white/80" />
       </div>
       
       {/* Top left HUD - Player stats */}
-      <div className="hud-top-left flex flex-col gap-2">
+      <div className="hud-top-left">
         <div className="ammo-counter">
           <Shield className="w-4 h-4 text-booyah-purple" />
           <div className="text-xs text-white">
@@ -56,6 +56,6 @@ export const FPSHudElements: React.FC = () => {
           <span className="text-xs text-white">KILLS: 12</span>
         </div>
       </div>
-    </>
+    </div>
   );
 };

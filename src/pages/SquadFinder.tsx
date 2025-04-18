@@ -6,14 +6,16 @@ import { FPSHudElements } from "@/components/FPSHudElements";
 
 export default function SquadFinder() {
   return (
-    <>
+    <div className="relative min-h-screen">
       <GameBackground />
-      <FPSHudElements />
       <Layout>
-        <div className="fps-container">
-          <SquadFinderSection />
+        <div className="relative z-10">
+          <FPSHudElements />
+          <div className="fps-container">
+            <SquadFinderSection />
+          </div>
         </div>
       </Layout>
-    </>
+    </div>
   );
 }
