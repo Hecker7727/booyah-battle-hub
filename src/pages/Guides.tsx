@@ -12,7 +12,7 @@ import { useNavigate, useParams } from "react-router-dom";
 const SAMPLE_RESOURCES: Resource[] = [
   {
     id: "1",
-    type: "beginner-guide",
+    type: "beginner",
     title: "Getting Started with Free Fire",
     content: "Free Fire is a battle royale game where 50 players parachute onto an island and fight to be the last one standing. This guide will help you understand the basics of the game, from landing strategies to weapon choices and more.",
     createdAt: new Date().toISOString(),
@@ -20,7 +20,7 @@ const SAMPLE_RESOURCES: Resource[] = [
   },
   {
     id: "2",
-    type: "character-guide",
+    type: "character",
     title: "Alok Character Guide",
     content: "Alok is one of the most versatile characters in Free Fire. His 'Drop the Beat' ability creates a 5m aura that increases movement speed by 10% and restores 5 HP/s for 5 seconds.",
     imageUrl: "https://images.unsplash.com/photo-1535223289827-42f1e9919769",
@@ -29,7 +29,7 @@ const SAMPLE_RESOURCES: Resource[] = [
   },
   {
     id: "3",
-    type: "weapon-tier",
+    type: "weapon",
     title: "Season 10 Weapon Tier List",
     content: "In this tier list, we rank all weapons in Free Fire from S-tier to F-tier based on their damage, recoil, fire rate, and overall effectiveness in different situations.",
     createdAt: new Date().toISOString(),
@@ -37,7 +37,7 @@ const SAMPLE_RESOURCES: Resource[] = [
   },
   {
     id: "4",
-    type: "map-strategy",
+    type: "map",
     title: "Bermuda Hot Spots",
     content: "Bermuda is one of the most popular maps in Free Fire. This guide covers the best landing spots, loot locations, and rotation strategies to help you secure more Booyahs!",
     imageUrl: "https://images.unsplash.com/photo-1563089145-599997674d42",
@@ -46,7 +46,7 @@ const SAMPLE_RESOURCES: Resource[] = [
   },
   {
     id: "5",
-    type: "rank-tip",
+    type: "rank",
     title: "Rank Pushing to Heroic",
     content: "This guide provides strategies and tips for climbing from Diamond to Heroic rank. Learn about optimal drop locations, when to engage in fights, and how to position yourself in the final circles.",
     createdAt: new Date().toISOString(),
@@ -54,7 +54,7 @@ const SAMPLE_RESOURCES: Resource[] = [
   },
   {
     id: "6",
-    type: "patch-note",
+    type: "patch",
     title: "May 2025 Update Notes",
     content: "The latest update brings balance changes to several weapons, introduces a new character, and adds a new location to the Bermuda map. Read the full details here.",
     createdAt: new Date().toISOString(),
@@ -64,7 +64,7 @@ const SAMPLE_RESOURCES: Resource[] = [
 
 export default function Guides() {
   const [resources, setResources] = useState<Resource[]>(SAMPLE_RESOURCES);
-  const [activeTab, setActiveTab] = useState<ResourceType>("beginner-guide");
+  const [activeTab, setActiveTab] = useState<ResourceType>("beginner");
   const [isAdmin, setIsAdmin] = useState(false);
   
   const navigate = useNavigate();
@@ -73,17 +73,17 @@ export default function Guides() {
   useEffect(() => {
     if (category) {
       const categoryMap: Record<string, ResourceType> = {
-        "characters": "character-guide",
-        "weapons": "weapon-tier",
-        "maps": "map-strategy",
-        "rank": "rank-tip",
-        "updates": "patch-note",
+        "characters": "character",
+        "weapons": "weapon",
+        "maps": "map",
+        "rank": "rank",
+        "updates": "patch",
       };
       
       if (categoryMap[category]) {
         setActiveTab(categoryMap[category]);
       } else if (category === "beginner") {
-        setActiveTab("beginner-guide");
+        setActiveTab("beginner");
       }
     }
     
@@ -92,23 +92,23 @@ export default function Guides() {
 
   const getResourceTypeIcon = (type: ResourceType) => {
     switch (type) {
-      case "beginner-guide": return <BookOpen className="h-5 w-5" />;
-      case "character-guide": return <Users className="h-5 w-5" />;
-      case "weapon-tier": return <Crosshair className="h-5 w-5" />;
-      case "map-strategy": return <Map className="h-5 w-5" />;
-      case "rank-tip": return <Trophy className="h-5 w-5" />;
-      case "patch-note": return <FileText className="h-5 w-5" />;
+      case "beginner": return <BookOpen className="h-5 w-5" />;
+      case "character": return <Users className="h-5 w-5" />;
+      case "weapon": return <Crosshair className="h-5 w-5" />;
+      case "map": return <Map className="h-5 w-5" />;
+      case "rank": return <Trophy className="h-5 w-5" />;
+      case "patch": return <FileText className="h-5 w-5" />;
     }
   };
 
   const getResourceTypeLabel = (type: ResourceType) => {
     switch (type) {
-      case "beginner-guide": return "Beginner's Guide";
-      case "character-guide": return "Character Guides";
-      case "weapon-tier": return "Weapon Tier List";
-      case "map-strategy": return "Map Strategies";
-      case "rank-tip": return "Rank Pushing Tips";
-      case "patch-note": return "Patch Notes";
+      case "beginner": return "Beginner's Guide";
+      case "character": return "Character Guides";
+      case "weapon": return "Weapon Tier List";
+      case "map": return "Map Strategies";
+      case "rank": return "Rank Pushing Tips";
+      case "patch": return "Patch Notes";
     }
   };
 
@@ -151,38 +151,38 @@ export default function Guides() {
           </div>
           
           <Tabs 
-            defaultValue="beginner-guide" 
+            defaultValue="beginner" 
             value={activeTab} 
             onValueChange={(value) => setActiveTab(value as ResourceType)}
           >
             <TabsList className="grid grid-cols-3 md:grid-cols-6 mb-8">
-              <TabsTrigger value="beginner-guide" className="flex items-center gap-2">
+              <TabsTrigger value="beginner" className="flex items-center gap-2">
                 <BookOpen className="h-4 w-4" />
                 <span className="hidden md:inline">Beginner's Guide</span>
               </TabsTrigger>
-              <TabsTrigger value="character-guide" className="flex items-center gap-2">
+              <TabsTrigger value="character" className="flex items-center gap-2">
                 <Users className="h-4 w-4" />
                 <span className="hidden md:inline">Character Guides</span>
               </TabsTrigger>
-              <TabsTrigger value="weapon-tier" className="flex items-center gap-2">
+              <TabsTrigger value="weapon" className="flex items-center gap-2">
                 <Crosshair className="h-4 w-4" />
                 <span className="hidden md:inline">Weapon Tier List</span>
               </TabsTrigger>
-              <TabsTrigger value="map-strategy" className="flex items-center gap-2">
+              <TabsTrigger value="map" className="flex items-center gap-2">
                 <Map className="h-4 w-4" />
                 <span className="hidden md:inline">Map Strategies</span>
               </TabsTrigger>
-              <TabsTrigger value="rank-tip" className="flex items-center gap-2">
+              <TabsTrigger value="rank" className="flex items-center gap-2">
                 <Trophy className="h-4 w-4" />
                 <span className="hidden md:inline">Rank Tips</span>
               </TabsTrigger>
-              <TabsTrigger value="patch-note" className="flex items-center gap-2">
+              <TabsTrigger value="patch" className="flex items-center gap-2">
                 <FileText className="h-4 w-4" />
                 <span className="hidden md:inline">Patch Notes</span>
               </TabsTrigger>
             </TabsList>
             
-            {(["beginner-guide", "character-guide", "weapon-tier", "map-strategy", "rank-tip", "patch-note"] as ResourceType[]).map((type) => (
+            {(["beginner", "character", "weapon", "map", "rank", "patch"] as ResourceType[]).map((type) => (
               <TabsContent key={type} value={type}>
                 <h2 className="text-2xl font-bold mb-6 flex items-center gap-2">
                   {getResourceTypeIcon(type)}

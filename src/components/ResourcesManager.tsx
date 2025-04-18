@@ -12,7 +12,11 @@ export interface Resource {
   type: string;
   content: string;
   createdAt: string;
+  updatedAt: string;
+  imageUrl?: string;
 }
+
+export type ResourceType = "beginner" | "character" | "weapon" | "map" | "rank" | "patch";
 
 export interface ResourcesManagerProps {
   resources: Resource[];
@@ -20,7 +24,7 @@ export interface ResourcesManagerProps {
 }
 
 export function ResourcesManager({ resources = [], setResources }: ResourcesManagerProps) {
-  const [activeTab, setActiveTab] = useState("beginner");
+  const [activeTab, setActiveTab] = useState<ResourceType>("beginner");
   const [newResourceTitle, setNewResourceTitle] = useState("");
   const [newResourceContent, setNewResourceContent] = useState("");
   const { toast } = useToast();
@@ -53,12 +57,13 @@ export function ResourcesManager({ resources = [], setResources }: ResourcesMana
       return;
     }
 
-    const newResource = {
+    const newResource: Resource = {
       id: `resource-${Date.now()}`,
       title: newResourceTitle,
       type: activeTab,
       content: newResourceContent,
       createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
     };
 
     // Add the new resource to the resources array
@@ -105,7 +110,7 @@ export function ResourcesManager({ resources = [], setResources }: ResourcesMana
           Add, edit, or remove resources for the BooyahZone community.
         </p>
 
-        <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
+        <Tabs value={activeTab} onValueChange={(value) => setActiveTab(value as ResourceType)} className="space-y-6">
           <TabsList className="grid grid-cols-3 md:grid-cols-6 mb-4">
             {resourceTypes.map(type => (
               <TabsTrigger 
