@@ -43,10 +43,7 @@ export function CommunitySection() {
     }
     
     // If logged in, you can access the forums
-    toast({
-      title: "Welcome to Forums",
-      description: "You now have access to the BooyahZone community forums.",
-    });
+    navigate("/forums");
   };
 
   if (!isLoggedIn) {

@@ -1,20 +1,29 @@
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { Layout } from "@/components/Layout";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { AdminAuth } from "@/components/AdminAuth";
-import { ResourcesManager } from "@/components/ResourcesManager";
+import { ResourcesManager, Resource } from "@/components/ResourcesManager";
 import { ModeratorManagement } from "@/components/ModeratorManagement";
 import { Shield, Book, Users, Settings, BarChart } from "lucide-react";
 
 export default function AdminPanel() {
   const [activeTab, setActiveTab] = useState("resources");
   const navigate = useNavigate();
+  const [resources, setResources] = useState<Resource[]>([]);
   
   // Check if user is admin (would use a real auth check in a production app)
   const isAdmin = sessionStorage.getItem("isAdmin") === "true";
   
+  useEffect(() => {
+    // Load resources from localStorage
+    const storedResources = localStorage.getItem("booyahzoneResources");
+    if (storedResources) {
+      setResources(JSON.parse(storedResources));
+    }
+  }, []);
+
   if (!isAdmin) {
     return (
       <Layout>
@@ -79,7 +88,7 @@ export default function AdminPanel() {
             </TabsList>
             
             <TabsContent value="resources">
-              <ResourcesManager />
+              <ResourcesManager resources={resources} setResources={setResources} />
             </TabsContent>
             
             <TabsContent value="team">
@@ -90,7 +99,7 @@ export default function AdminPanel() {
               <div className="neon-card p-6">
                 <h2 className="text-xl font-bold mb-4">Platform Statistics</h2>
                 <p className="text-muted-foreground">
-                  This section will display user analytics, engagement metrics, and other platform statistics.
+                  This section displays user analytics, engagement metrics, and other platform statistics.
                 </p>
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-6">
                   <div className="bg-card/60 p-4 rounded-lg border border-border">

@@ -1,5 +1,5 @@
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Layout } from "@/components/Layout";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -10,6 +10,12 @@ import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { ArrowRight, Mail, Lock, Eye, EyeOff, User } from "lucide-react";
+
+// In a real app, these would be stored securely in a database
+const ADMIN_CREDENTIALS = {
+  username: "admin",
+  password: "booyah123",
+};
 
 const loginSchema = z.object({
   email: z.string().email({ message: "Please enter a valid email address" }),
@@ -33,9 +39,18 @@ export default function Login() {
   const [mode, setMode] = useState<"login" | "register">("login");
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
   
   const { toast } = useToast();
   const navigate = useNavigate();
+  
+  // Check if already logged in
+  useEffect(() => {
+    const loggedIn = sessionStorage.getItem("isLoggedIn") === "true";
+    if (loggedIn) {
+      navigate("/");
+    }
+  }, [navigate]);
   
   const loginForm = useForm<LoginFormValues>({
     resolver: zodResolver(loginSchema),
@@ -59,7 +74,18 @@ export default function Login() {
     // In a real app, this would call an API to authenticate
     console.log("Login form submitted:", values);
     
-    // Simulate login success
+    // Check if it's an admin login
+    if (values.email === `${ADMIN_CREDENTIALS.username}@booyahzone.com` && 
+        values.password === ADMIN_CREDENTIALS.password) {
+      // Set admin status
+      sessionStorage.setItem("isAdmin", "true");
+      toast({
+        title: "Admin Login Successful",
+        description: "Welcome back, Admin! You now have access to admin features.",
+      });
+    }
+    
+    // Set login status
     sessionStorage.setItem("isLoggedIn", "true");
     
     toast({
@@ -67,6 +93,10 @@ export default function Login() {
       description: "You have successfully logged in.",
     });
     
+    // Simulate event to update navbar
+    window.dispatchEvent(new Event('storage'));
+    
+    // Redirect to home
     navigate("/");
   };
 
@@ -77,10 +107,16 @@ export default function Login() {
     // Simulate registration success
     sessionStorage.setItem("isLoggedIn", "true");
     
+    // Store username in sessionStorage
+    sessionStorage.setItem("username", values.username);
+    
     toast({
       title: "Account created!",
       description: "Your account has been successfully created. Welcome to BooyahZone!",
     });
+    
+    // Simulate event to update navbar
+    window.dispatchEvent(new Event('storage'));
     
     navigate("/");
   };
@@ -96,6 +132,9 @@ export default function Login() {
       title: `${provider} Login Successful`,
       description: `You've successfully logged in with ${provider}.`,
     });
+    
+    // Simulate event to update navbar
+    window.dispatchEvent(new Event('storage'));
     
     navigate("/");
   };
@@ -198,6 +237,10 @@ export default function Login() {
                     <Button type="submit" variant="fire" className="w-full">
                       Sign In
                     </Button>
+                    
+                    <div className="text-center text-sm">
+                      <p className="text-muted-foreground">Admin login: admin@booyahzone.com / booyah123</p>
+                    </div>
                   </form>
                 </Form>
               ) : (

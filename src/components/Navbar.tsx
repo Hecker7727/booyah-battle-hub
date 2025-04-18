@@ -3,7 +3,7 @@ import { useState, useEffect } from "react";
 import { Link, useNavigate, useLocation } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Menu, X, User, Search, Bell, BookOpen, Shield } from "lucide-react";
+import { Menu, X, User, Search, Bell, BookOpen, Shield, LogOut } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 
 export function Navbar() {
@@ -14,10 +14,23 @@ export function Navbar() {
   const navigate = useNavigate();
   const location = useLocation();
 
+  // Check login and admin status on mount and route change
   useEffect(() => {
-    // Check if user is admin
-    const adminStatus = sessionStorage.getItem("isAdmin") === "true";
-    setIsAdmin(adminStatus);
+    const checkLoginStatus = () => {
+      const loggedIn = sessionStorage.getItem("isLoggedIn") === "true";
+      const adminStatus = sessionStorage.getItem("isAdmin") === "true";
+      setIsLoggedIn(loggedIn);
+      setIsAdmin(adminStatus);
+    };
+
+    checkLoginStatus();
+    
+    // This simulates a subscription to session changes
+    window.addEventListener('storage', checkLoginStatus);
+    
+    return () => {
+      window.removeEventListener('storage', checkLoginStatus);
+    };
   }, [location.pathname]);
 
   const toggleMenu = () => setIsMenuOpen(!isMenuOpen);
@@ -27,12 +40,17 @@ export function Navbar() {
   };
 
   const handleLogout = () => {
-    setIsLoggedIn(false);
+    sessionStorage.removeItem("isLoggedIn");
     sessionStorage.removeItem("isAdmin");
+    setIsLoggedIn(false);
+    setIsAdmin(false);
     toast({
       title: "Logged out",
       description: "You have been successfully logged out.",
     });
+    
+    // Redirect to home page after logout
+    navigate("/");
   };
 
   return (
@@ -71,10 +89,13 @@ export function Navbar() {
           <Button variant="ghost" size="icon" aria-label="Search">
             <Search className="h-4 w-4" />
           </Button>
-          <Button variant="ghost" size="icon" aria-label="Notifications">
-            <Bell className="h-4 w-4" />
-            <Badge variant="fire" className="absolute -top-1 -right-1 w-4 h-4 flex items-center justify-center p-0">3</Badge>
-          </Button>
+          
+          {isLoggedIn && (
+            <Button variant="ghost" size="icon" aria-label="Notifications">
+              <Bell className="h-4 w-4" />
+              <Badge variant="fire" className="absolute -top-1 -right-1 w-4 h-4 flex items-center justify-center p-0">3</Badge>
+            </Button>
+          )}
           
           {isAdmin && (
             <Link to="/admin">
@@ -91,7 +112,8 @@ export function Navbar() {
                 <User className="h-4 w-4" />
                 <Badge variant="neon" className="absolute -top-1 -right-1 w-2 h-2 p-0"></Badge>
               </Button>
-              <Button variant="outline" size="sm" onClick={handleLogout}>
+              <Button variant="outline" size="sm" onClick={handleLogout} className="flex items-center gap-2">
+                <LogOut className="h-4 w-4" />
                 Logout
               </Button>
             </div>
@@ -142,7 +164,8 @@ export function Navbar() {
                   <User className="h-4 w-4" />
                   Profile
                 </Button>
-                <Button variant="outline" size="sm" onClick={handleLogout}>
+                <Button variant="outline" size="sm" onClick={handleLogout} className="flex items-center gap-2">
+                  <LogOut className="h-4 w-4" />
                   Logout
                 </Button>
               </div>
